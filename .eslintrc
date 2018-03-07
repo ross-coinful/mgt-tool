@@ -1,0 +1,42 @@
+{
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion": 7,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "modules": true,
+      "jsx": true,
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "extends": [
+    "eslint:recommended",
+  ],
+  "rules": {
+    "no-underscore-dangle": "off",
+    "arrow-body-style": "off",
+    "no-param-reassign": [
+      "error",
+      {
+        "props": false
+      }
+    ],
+    "max-len": [
+      "error",
+      140
+    ],
+    "consistent-return": "off",
+    "padded-blocks": "off",
+    "new-cap": "off",
+    "jsx-a11y/no-static-element-interactions": 0,
+  },
+  "globals": {
+    "const": true,
+    "ga": true
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "jasmine": true
+  },
+}

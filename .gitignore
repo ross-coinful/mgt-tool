@@ -1,0 +1,13 @@
+.idea/
+design/.sass-cache
+design/html/
+design/css/main.css
+node_modules/
+dist/
+src/style/
+*.iml
+webpack-stats.json
+npm-debug.log
+karma-[0-9]*/
+reports/
+selenium-debug.log
