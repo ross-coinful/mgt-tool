@@ -11,3 +11,4 @@ npm-debug.log
 karma-[0-9]*/
 reports/
 selenium-debug.log
+data.js
