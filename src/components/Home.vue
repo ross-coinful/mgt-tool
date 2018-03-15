@@ -1,59 +1,89 @@
 <template>
   <div class="home">
     <h1>{{ msg }}</h1>
-    <h2>Click the button to get github issues</h2>
 
-    <Button style="margin: 20px 0" @click="modal1 = true">
+    <Button style="margin: 20px 0" icon="plus-round" @click="modal1 = true">
       Add new issue
-      <Icon type="plus-round"></Icon>
     </Button>
     <Modal
       v-model="modal1"
       title="Create a new issue"
       @on-ok="add">
-      <textarea v-model="newIssue">
-      </textarea>
+      <div>
+        <Input type="text" v-model="title" placeholder="Title"></Input>
+      </div>
+      <Input v-model="comment" type="textarea" :rows="4" placeholder="Leave a comment"></Input>
     </Modal>
 
-    <Button style="margin: 20px 0" @click="get">Get issues</Button>
-    <Row :gutter="16" v-for="i in Math.ceil(issues.length / 4)" :key="i">
-      <Col span="6" v-for="issue in issues.slice((i - 1) * 4, i * 4)" :key="issue.title">
-        <Issue v-bind:issue="issue"></Issue>
-      </Col>
-    </Row>
+    <Button style="margin: 20px 0" icon="refresh" @click="getIssues">
+      Update issues
+    </Button>
+
+    <Tabs value="name1">
+      <TabPane label="Time" name="name1">
+        <TimeBoard :issues="issues" />
+      </TabPane>
+      <TabPane label="Project" name="name2">
+        <ProjectBoard :issues="issues" />
+      </TabPane>
+      <TabPane label="Milestone" name="name3">
+        <MilestoneBoard :issues="issues" :milestones="milestones" />
+      </TabPane>
+    </Tabs>
 
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import Issue from '@/components/Issue';
+import TimeBoard from '@/components/TimeBoard';
+import ProjectBoard from '@/components/ProjectBoard';
+import MilestoneBoard from '@/components/MilestoneBoard';
 import { token, githubApi } from '../../data';
 
 export default {
   name: 'Home',
   data () {
     return {
+      milestones: [],
       issues: [],
       msg: 'Welcome to Your Management Tool',
       modal1: false,
-      newIssue: 'new issue'
+      title: '',
+      comment: ''
     };
   },
-  components: {Issue: Issue},
+  components: {
+    TimeBoard: TimeBoard,
+    ProjectBoard: ProjectBoard,
+    MilestoneBoard: MilestoneBoard
+  },
   mounted () {
-    this.get();
+    this.initial();
     console.log('mounted');
   },
   methods: {
-    get: function () {
-      this.loading = true;
+    initial () {
+      this.getMilestones();
+      this.getIssues();
+    },
+    getMilestones () {
+      axios({
+        method: 'get',
+        url: `${githubApi}/milestones`
+      })
+      .then((response) => {
+        this.milestones = response.data;
+      }, (error) => {
+        console.log('getMilestones error', error);
+      });
+    },
+    getIssues () {
       axios({
         method: 'get',
         url: `${githubApi}/issues`
       })
       .then((response) => {
-        // this.loading = false;
         this.issues = response.data.map((value) => {
 
           value.labels = value.labels.map((label) => {
@@ -64,19 +94,20 @@ export default {
           return {
             labels: value.labels,
             title: value.title,
+            body: value.body,
+            commentCount: value.comments,
+            comments_url: value.comments_url,
             number: value.number,
             created_at: value.created_at,
-            user: value.user.login
+            user: value.user.login,
+            milestone: value.milestone
           };
         });
-
       }, (error) => {
-        // this.loading = false;
-        console.log('error', error);
+        console.log('getIssues error', error);
       });
     },
-    add: function () {
-      this.loading = true;
+    add () {
       axios({
         method: 'post',
         url: `${githubApi}/issues`,
@@ -85,7 +116,8 @@ export default {
           Accept: 'application/vnd.github.v3+json'
         },
         data: {
-          title: this.newIssue
+          title: this.title,
+          body: this.comment
         }
       })
       .then((response) => {
