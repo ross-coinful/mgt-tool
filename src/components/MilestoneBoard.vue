@@ -42,13 +42,13 @@ export default {
           this.indexs.push(index);
         }
 
-        console.log('issuesFilter this,indexs', this.indexs);
+        // console.log('issuesFilter this,indexs', this.indexs);
 
         return true;
       });
     },
     otherIssues () {
-      console.log('this,indexs', this.indexs);
+      // console.log('this,indexs', this.indexs);
       return this.issues.filter((issue, index) => {
         return this.indexs.indexOf(index) === -1;
       });

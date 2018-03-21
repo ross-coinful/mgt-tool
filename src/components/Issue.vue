@@ -6,7 +6,7 @@
         <Tag v-for="label in issue.labels" :color="label.color" :key="label.name">{{ label.name }}</Tag>
       </div>
 
-      <p>{{ title }}</p>
+      <p>#{{ issue.number }} {{ title }}</p>
 <!--       <p v-if="!isEdit">
         {{ title }}
         <Icon type="edit" @click.prevent.stop="toggle"></Icon>
@@ -25,11 +25,40 @@
       title="Edit issue">
       <div class="title">
         <h3>Title</h3>
-        <Input type="text" v-model="title" placeholder="Title" />
+        <span>#{{ issue.number }}</span>
+        <Input style="width: 95%" type="text" v-model="title" placeholder="Title" />
         <Button style="margin-top: 10px" type="success" :loading="loading2" @click="updateIssue">Update</Button>
       </div>
 
-      <div class="title" style="margin-top: 20px;">
+      <Row style="margin-top: 20px">
+        <Col span="12">
+          <h3>Member</h3>
+          <div v-for="assignee in issue.assignees" :key="assignee">{{ assignee }}</div>
+
+          <Button style="margin-top: 10px" type="success" :loading="loading2" @click="updateIssue">Edit</Button>
+        </Col>
+
+        <Col span="12">
+          <h3>Project</h3>
+          <div>Backend project</div>
+
+          <Button style="margin-top: 10px" type="success" :loading="loading2" @click="updateIssue">Edit</Button>
+        </Col>
+      </Row>
+
+      <Row style="margin-top: 20px">
+        <Col span="12">
+          <h3>Label</h3>
+          <Tag v-for="label in issue.labels" :color="label.color" :key="label.name">{{ label.name }}</Tag>
+        </Col>
+
+        <Col span="12">
+          <h3>Milestone</h3>
+          <div>{{ issue.milestone }}</div>
+        </Col>
+      </Row>
+
+      <div class="desc" style="margin-top: 20px;">
         <h3>Description</h3>
         <Input type="textarea" v-model="body" :rows="2" placeholder="Title" />
         <Button style="margin-top: 10px" type="success" :loading="loading2" @click="updateIssue">Update</Button>

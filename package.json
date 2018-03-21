@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "server": "supervisor server/server.js",
-    "start": "concurrently --kill-others \"yarn dev\" \"yarn server\"",
+    "socket": "supervisor server/socket.js",
+    "start": "concurrently --kill-others \"yarn dev\" \"yarn server\" \"yarn socket\"",
     "unit": "jest --config test/unit/jest.conf.js --coverage",
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
@@ -16,13 +17,19 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "body-parser": "^1.18.2",
     "concurrently": "^3.5.1",
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "iview": "^2.9.2",
+    "mongoose": "^5.0.10",
+    "socket.io": "^2.0.4",
+    "socket.io-client": "^2.0.4",
     "supervisor": "^0.12.0",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vuedraggable": "^2.16.0",
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

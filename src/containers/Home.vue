@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h1>{{ msg }}</h1>
+    <h1>{{ msg }} {{ testData }}</h1>
 
     <Button style="margin: 20px 0" icon="plus-round" @click="modal1 = true">
       Add new issue
@@ -8,7 +8,7 @@
     <Modal
       v-model="modal1"
       title="Create a new issue"
-      @on-ok="add">
+      @on-ok="addTask">
       <div>
         <Input type="text" v-model="title" placeholder="Title"></Input>
       </div>
@@ -20,8 +20,8 @@
     </Button>
 
     <Tabs value="name1">
-      <TabPane label="Time" name="name1">
-        <TimeBoard :issues="issues" />
+      <TabPane label="Label" name="name1">
+        <LabelBoard :issues="issues" />
       </TabPane>
       <TabPane label="Project" name="name2">
         <ProjectBoard :issues="issues" />
@@ -36,10 +36,10 @@
 
 <script>
 import axios from 'axios';
-import TimeBoard from '@/components/TimeBoard';
+import LabelBoard from '@/components/LabelBoard';
 import ProjectBoard from '@/components/ProjectBoard';
 import MilestoneBoard from '@/components/MilestoneBoard';
-import { token, githubApi } from '../../data';
+import { githubApi, localServer } from '../../data';
 
 export default {
   name: 'Home',
@@ -50,11 +50,12 @@ export default {
       msg: 'Welcome to Your Management Tool',
       modal1: false,
       title: '',
-      comment: ''
+      comment: '',
+      testData: ''
     };
   },
   components: {
-    TimeBoard: TimeBoard,
+    LabelBoard: LabelBoard,
     ProjectBoard: ProjectBoard,
     MilestoneBoard: MilestoneBoard
   },
@@ -66,6 +67,18 @@ export default {
     initial () {
       this.getMilestones();
       this.getIssues();
+      this.testServer();
+    },
+    testServer () {
+      axios({
+        method: 'get',
+        url: `${localServer}/suggest`
+      })
+      .then((response) => {
+        this.testData = response.data;
+      }, (error) => {
+        console.log('testServer error', error);
+      });
     },
     getMilestones () {
       axios({
@@ -81,7 +94,7 @@ export default {
     getIssues () {
       axios({
         method: 'get',
-        url: `${githubApi}/issues`
+        url: `${localServer}/issues`
       })
       .then((response) => {
         this.issues = response.data.map((value) => {
@@ -89,6 +102,10 @@ export default {
           value.labels = value.labels.map((label) => {
             label.color = '#' + label.color.toUpperCase();
             return label;
+          });
+
+          value.assignees = value.assignees.map((assignee) => {
+            return assignee.login;
           });
 
           return {
@@ -100,30 +117,28 @@ export default {
             number: value.number,
             created_at: value.created_at,
             user: value.user.login,
-            milestone: value.milestone
+            milestone: value.milestone ? value.milestone.number : null,
+            assignees: value.assignees
           };
         });
       }, (error) => {
         console.log('getIssues error', error);
       });
     },
-    add () {
+    addTask () {
       axios({
         method: 'post',
-        url: `${githubApi}/issues`,
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json'
-        },
+        url: `${localServer}/issues`,
         data: {
           title: this.title,
           body: this.comment
         }
       })
       .then((response) => {
-
+        console.log('add task success', response, response.data);
+        // this.testData = response.data;
       }, (error) => {
-        console.log('add issue error', error);
+        console.log('add task  error', error);
       });
     }
   }
