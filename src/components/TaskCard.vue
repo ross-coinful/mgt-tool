@@ -21,8 +21,7 @@ export default {
   },
   computed: {
     card () {
-      console.log('id', this.id);
-      return this.$store.getters.taskCard(this.id);
+      return this.$store.getters.card(this.id);
     }
   },
   components: {

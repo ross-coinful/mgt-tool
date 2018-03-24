@@ -1,6 +1,6 @@
 <template>
   <BaseCard type="subtask" :id="id">
-    <p>{{ title }}</p>
+    <p>{{ card.title }}</p>
 
     <Dropdown class="label-dropdown" placement="bottom-start" @on-click="setProgress">
       <a href="javascript:void(0)" :class="['label-text', progress]">{{ upperProgress }}</a>
@@ -37,6 +37,9 @@ export default {
   computed: {
     upperProgress () {
       return this.progress[0].toUpperCase() + this.progress.substr(1);
+    },
+    card () {
+      return this.$store.getters.card(this.id);
     }
   },
   data () {

@@ -6,27 +6,29 @@
         v-for="(id, index) in activityCardIds"
         :id="id"
         :activityIndex="index"
-        :width="widths[0]"
+        :taskCardIds="taskCardIds(index)"
+        :width="$store.state.card.boardWidths[index]"
         :key="id">
       </ActivityBoard>
     </div>
 
-  <!-- 用widths for 貨 activityIndex 長度 -->
-    <div v-for="release in releaseList" class="list-container" :key="release">
-      <div class="release-list">
-        <div class="release-title" :style="{ width: widths[0] + 'px' }">{{ release.title }}</div>
-        <div class="release-title" :style="{ width: widths[1] + 'px' }"></div>
-        <div class="release-title"></div>
-      </div>
+    <div>
+      <div v-for="(release, releaseIndex) in releaseList" class="list-container" :key="release">
+        <div class="release-list">
+          <div v-for="(width, index) in boardWidths" class="release-title" :style="{ width: width + 'px' }" :key="`width-${index}`">
+            <span v-show="index === 0">{{ release }}</span>
+          </div>
+        </div>
 
-      <div class="board-list">
-        <TaskBoard
-          v-for="(id, index) in activityCardIds"
-          :activityIndex="index"
-          :releaseIndex="release.index"
-          :width="widths[0]"
-          :key="id">
-        </TaskBoard>
+        <div class="board-list">
+          <TaskBoard
+            v-for="(id, index) in activityCardIds"
+            :activityIndex="index"
+            :releaseIndex="releaseIndex"
+            :width="boardWidths[index]"
+            :key="id">
+          </TaskBoard>
+        </div>
       </div>
     </div>
 
@@ -64,20 +66,21 @@
 import ActivityBoard from '@/components/ActivityBoard';
 import TaskBoard from '@/components/TaskBoard';
 import store from '../stores';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'StoryMap',
   store,
   computed: {
-    activityCardIds () {
-      return this.$store.getters.activityCardIds;
-    },
-    subtaskCardIds () {
-      return this.$store.getters.subtaskCardIds;
-    }
+    ...mapGetters([
+      'activityCardIds',
+      'releaseList',
+      'boardWidths'
+    ])
   },
   mounted () {
     this.$store.dispatch('getCardList');
+    this.$store.dispatch('getReleaseList');
   },
   components: {
     ActivityBoard: ActivityBoard,
@@ -91,11 +94,13 @@ export default {
       isFocusDetail: false,
       cardTitle: this.title,
       cardDetail: this.detail,
-      isSubtask: false,
-      widths: [270, 400]
+      isSubtask: false
     };
   },
   methods: {
+    taskCardIds (activityIndex) {
+      return this.$store.getters.taskCardIds(activityIndex);
+    },
     toggleEditTitle () {
       this.toggleEdit('Title');
     },
@@ -243,15 +248,45 @@ export default {
 
 .board-body {
   padding: 4px;
+  padding-right: 0;
   border-right: 1px dotted #bbb;
-}
-
-.focus {
-  border-width: 2px;
-  border-color: #000;
 }
 
 .link-btn-separator {
   color: #ddd;
+}
+
+.card {
+  position: relative;
+  width: 120px;
+  height: 78px;
+  padding: 3px;
+  margin: 4px;
+  border-width: 1px;
+  border-style: solid;
+  cursor: pointer;
+}
+
+.subtask-card {
+  background-color: #ffffff;
+  border-color: #cecece;
+  color: #4f4f4f;
+}
+
+.task-card {
+  background-color: #f4e459;
+  border-color: #e8cf01;
+  color: #635207;
+}
+
+.activity-card {
+  background-color: #aed9e9;
+  border-color: #8fcbe3;
+  color: #274e5b;
+}
+
+.focus {
+  border-width: 2px;
+  border-color: rgba(0, 0, 0, 0.2);
 }
 </style>

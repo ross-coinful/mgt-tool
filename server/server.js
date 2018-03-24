@@ -9,16 +9,18 @@ const mongoose = require('mongoose');
 const Test = mongoose.model('Test');
 const Task = mongoose.model('Task');
 
-// routes
-const card = require('./card');
-
 const { token, githubApi } = require('../data');
 const port = 8030;
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// routes
+const card = require('./card');
+const release = require('./release');
+
 app.use('/card', card);
+app.use('/release', release);
 
 app.get('/test', (req, res) => {
   new Test({
@@ -139,6 +141,13 @@ app.post('/issues', (req, res) => {
     console.log('get error', error);
     return res.status(400).end();
   });
+});
+
+app.post('/test/:id', (req, res) => {
+  setTimeout(() => {
+    console.log('test card', req.parameter, req.body);
+    return res.status(200).end();
+  }, 500);
 });
 
 app.listen(port, () => {

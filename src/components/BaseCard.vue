@@ -1,9 +1,9 @@
 <template>
-  <div :class="setClass" @click="focusCard" @mouseover="show = true" @mouseout="show = false">
+  <div :class="setClass" :data-id="id" @click="focusCard" @mouseover="show = true" @mouseout="show = false">
     <slot></slot>
 
-    <div v-show="show" class="add-card" @click="openCard">
-      <Icon  type="plus-circled" size="16"></Icon>
+    <div v-show="show" class="card-toolbar" @click="deleteCard">
+      <Icon type="trash-a" size="16"></Icon>
     </div>
   </div>
 </template>
@@ -37,13 +37,13 @@ export default {
   methods: {
     focusCard () {
       if (this.$store.state.card.focusId === this.id) {
-        this.openCard();
+        this.$store.dispatch('openCard');
       } else {
         this.$store.dispatch('setFocusId', this.id);
       }
     },
-    openCard () {
-      this.$store.dispatch('openCard');
+    deleteCard () {
+      this.$store.dispatch('deleteCard', this.id);
     }
   }
 };
@@ -51,36 +51,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.card {
-  position: relative;
-  width: 120px;
-  height: 78px;
-  padding: 3px;
-  margin: 4px;
-  border-width: 1px;
-  border-style: solid;
-  cursor: pointer;
-}
-
-.subtask-card {
-  background-color: #ffffff;
-  border-color: #cecece;
-  color: #4f4f4f;
-}
-
-.task-card {
-  background-color: #f4e459;
-  border-color: #e8cf01;
-  color: #635207;
-}
-
-.activity-card {
-  background-color: #aed9e9;
-  border-color: #8fcbe3;
-  color: #274e5b;
-}
-
-.add-card {
+.card-toolbar {
   position: absolute;
   z-index: 0;
   bottom: 0;
