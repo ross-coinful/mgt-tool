@@ -7,9 +7,7 @@ export default {
     focusId: null,
     isOpen: false,
     cardList: [],
-    boardWidths: [],
-    createCard: false,
-    createIndexs: {}
+    boardWidths: []
   },
   actions: {
     setFocusId ({ commit }, id) {
@@ -34,18 +32,15 @@ export default {
     getCard ({ commit }, id) {
       commit('getCard', id);
     },
-    createCard ({ commit }, data) {
-      commit('createCard', data);
+    updateBoardWidths ({ commit }, activityIndex) {
+      commit('updateBoardWidths', activityIndex);
     },
-    addCard ({ commit, state }, title) {
+    addCard ({ commit, state }, { data, callback }) {
       commit('addCard');
 
-      const { createType, createIndexs } = state;
-      const data = Object.assign({}, createIndexs);
-      data.type = createType;
-      data.title = title;
+      const { type } = data;
 
-      if (createType === 'subtask') {
+      if (type === 'subtask') {
         data.label = 'todo';
       }
 
@@ -56,7 +51,7 @@ export default {
       })
       .then((response) => {
         data.id = response.data;
-
+        callback();
         commit('addCardSuc', data);
       }, (error) => {
         commit('addCardErr', error);
@@ -144,26 +139,11 @@ export default {
       state.getCardList = false;
       state.getCardListErr = err;
     },
-    createCard (state, { type, activityIndex, releaseIndex, taskIndex, subtaskIndex }) {
-      state.createCard = true;
-      state.createType = type;
+    updateBoardWidths (state, activityIndex) {
+      const newBoardWidths = state.boardWidths.slice();
+      newBoardWidths[activityIndex] += 128;
 
-      if (type === 'task') {
-        const newBoardWidths = state.boardWidths.slice();
-        newBoardWidths[activityIndex] += 128;
-        state.boardWidths = newBoardWidths;
-        state.createIndexs = {
-          activityIndex,
-          taskIndex
-        };
-      } else {
-        state.createIndexs = {
-          activityIndex,
-          releaseIndex,
-          taskIndex,
-          subtaskIndex
-        };
-      }
+      state.boardWidths = newBoardWidths;
     },
     addCard (state) {
       state.addCard = true;
@@ -172,9 +152,7 @@ export default {
       state.addCard = false;
       state.addCardSuc = true;
       state.cardList.push(card);
-      state.createCard = false;
-      state.createType = '';
-      state.createIndexs = {};
+      // state.createCard = false;
 
     },
     addCardErr (state, err) {

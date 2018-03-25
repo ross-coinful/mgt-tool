@@ -16,24 +16,15 @@
         :id="id"
         :key="id">
       </SubTaskCard>
-      <NewCard v-if="checkCreate(index)" type="subtask"></NewCard>
-      <div v-else class="add-card-container" @mouseover="show = true" @mouseout="show = false">
-        <div v-show="show" class="add-card" :data-index="index" @click="createCard">
-          <Icon type="plus-circled" size="16"></Icon>
-        </div>
-      </div>
-
+      <NewCard
+        type="subtask"
+        :activityIndex="activityIndex"
+        :releaseIndex="releaseIndex"
+        :taskIndex="index"
+        :subtaskCardIds="subtaskCardIds">
+      </NewCard>
     </draggable>
 
-<!--     <draggable v-model="list" class="subtask-list" :options="{group:'people'}">
-      <SubTaskCard
-        v-for="subtask in list"
-        :id="subtask.id"
-        :title="subtask.title"
-        :key="subtask.id">
-      </SubTaskCard>
-    </draggable>
- -->
   </div>
 </template>
 
@@ -74,12 +65,6 @@ export default {
     }
   },
   methods: {
-    checkCreate (index) {
-      const { createCard, createType, createIndexs } = this.$store.state.card;
-      const { activityIndex, releaseIndex, taskIndex } = createIndexs;
-
-      return createCard && createType === 'subtask' && activityIndex === this.activityIndex && releaseIndex === this.releaseIndex && taskIndex === index;
-    },
     subtaskCardIds (taskIndex) {
       return this.$store.getters.subtaskCardIds(this.activityIndex, this.releaseIndex, taskIndex);
     },
@@ -96,30 +81,6 @@ export default {
       // const oldSubtaskIndex = evt.oldIndex;
       // console.log('id', id, `from ${oldTaskIndex}, ${oldSubtaskIndex}`,  `to ${newTaskIndex}, ${newSubtaskIndex}`);
       // this.$store.dispatch('updateCard');
-    },
-    createCard (e) {
-      // const data = {
-      //   type: 'task',
-      //   activityIndex: this.activityIndex,
-      //   taskIndex: this.taskCardIds.length
-      // };
-
-      // this.$store.dispatch('createCard', data);
-      // this.isCreate = true;
-      // this.createIndex = parseInt(e.currentTarget.getAttribute('data-index'), 10);
-      // this.$forceUpdate();
-
-      const taskIndex = parseInt(e.currentTarget.getAttribute('data-index'), 10);
-
-      const data = {
-        type: 'subtask',
-        activityIndex: this.activityIndex,
-        releaseIndex: this.releaseIndex,
-        taskIndex: taskIndex,
-        subtaskIndex: this.subtaskCardIds(taskIndex).length
-      };
-
-      this.$store.dispatch('createCard', data);
     }
   },
   components: {
@@ -159,15 +120,5 @@ export default {
 .subtask-list {
   position: relative;
   width: 128px;
-}
-
-.add-card-container {
-  position: absolute;
-  width: 100%;
-  height: 20px;
-}
-
-.add-card {
-  text-align: center;
 }
 </style>

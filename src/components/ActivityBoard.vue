@@ -1,5 +1,5 @@
 <template>
-  <div style="position: relative" @mouseover="show = true" @mouseout="show = false">
+  <div style="position: relative">
     <div class="board-body" :style="style">
       <draggable class="activity-board" :options="{group:'card'}">
         <ActivityCard :id="id" :index="activityIndex"></ActivityCard>
@@ -7,13 +7,10 @@
 
       <draggable class="task-board" :options="{group:'card'}">
         <TaskCard v-for="(id, index) in taskCardIds" :id="id" :index="index" :key="id"></TaskCard>
-        <NewCard v-if="checkCreate" type="task"></NewCard>
+        <NewCard type="task" :activityIndex="activityIndex"></NewCard>
       </draggable>
     </div>
 
-    <div v-show="show" class="add-card" @click="createCard">
-      <Icon type="plus-circled" size="16"></Icon>
-    </div>
   </div>
 </template>
 
@@ -45,28 +42,10 @@ export default {
     }
   },
   store,
-  data () {
-    return {
-      show: false
-    };
-  },
   computed: {
     style () {
       return 'width: ' + this.width + 'px';
-    },
-    checkCreate () {
-      const { createCard, createType, createIndexs } = this.$store.state.card;
-      const { activityIndex } = createIndexs;
-
-      console.log('createCard', createCard, activityIndex);
-
-      return createCard && createType === 'task' && activityIndex === this.activityIndex;
     }
-    // isCreate () {
-    //   const { isCreate, createType, createIndexs } = this.$store.state.card;
-
-    //   return isCreate && createType === 'task' && createIndexs.activityIndex === this.activityIndex;
-    // }
   },
   components: {
     ActivityCard,
@@ -94,6 +73,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .task-board {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
