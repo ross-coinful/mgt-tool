@@ -10,6 +10,9 @@
         :width="$store.state.card.boardWidths[index]"
         :key="id">
       </ActivityBoard>
+
+      <NewCard type="activity" :activityIndex="activityCardIds.length" />
+
     </div>
 
     <div>
@@ -65,6 +68,7 @@
 <script>
 import ActivityBoard from '@/components/ActivityBoard';
 import TaskBoard from '@/components/TaskBoard';
+import NewCard from '@/components/NewCard';
 import store from '../stores';
 import { mapGetters } from 'vuex';
 
@@ -83,8 +87,9 @@ export default {
     this.$store.dispatch('getReleaseList');
   },
   components: {
-    ActivityBoard: ActivityBoard,
-    TaskBoard: TaskBoard
+    ActivityBoard,
+    TaskBoard,
+    NewCard
   },
   data () {
     return {
@@ -198,6 +203,11 @@ export default {
   color: #282828;
   font-size: 14px;
 }
+
+/* 因為 type為activity 的 NewCard 並沒有被 board-body 包裹住 所以需要加上 padding */
+/*.new-card {
+  padding: 4px;
+}*/
 </style>
 
 <style>
@@ -247,6 +257,7 @@ export default {
 /* overwrite iview style end*/
 
 .board-body {
+  /*height: 100%;*/
   padding: 4px;
   padding-right: 0;
   border-right: 1px dotted #bbb;

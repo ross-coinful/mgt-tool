@@ -1,11 +1,13 @@
 <template>
-  <div class="new-card" :style="style">
-    <div v-if="isCreate" :class="setClass">
-      <textarea v-model="title" v-focus @blur="saveCard" autofocus></textarea>
-    </div>
-    <div v-else class="add-card-container" @mouseover="show = true" @mouseout="show = false">
-      <div v-show="show" class="add-card" @click="createCard">
-        <Icon type="plus-circled" size="16"></Icon>
+  <div :class="boardBodyClass">
+    <div class="new-card" :style="style" @mouseover="show = true" @mouseout="show = false">
+      <div v-if="isCreate" :class="setClass">
+        <textarea v-model="title" v-focus @blur="saveCard" autofocus></textarea>
+      </div>
+      <div v-else class="add-card-container">
+        <div v-show="show" class="add-card" @click="createCard">
+          <Icon type="plus-circled" size="16"></Icon>
+        </div>
       </div>
     </div>
   </div>
@@ -40,13 +42,22 @@ export default {
   },
   store,
   computed: {
+    boardBodyClass () {
+      return `${this.type === 'activity' ? 'board-body' : ''}`;
+    },
     setClass () {
       return `card ${this.isFocus ? 'focus' : ''} ${this.type}-card`;
     },
     style () {
-      const position = `position: ${this.isCreate ? 'static;' : 'absolute;'}`;
-      const width = `width: ${this.type === 'subtask' ? '100%' : '20px'}`;
-      return position + width;
+      let width = 'width: 20px';
+
+      if (this.type === 'activity') {
+        return 'position: relative; width: 128px';
+      } else if (this.type === 'subtask') {
+        width = 'width: 100%';
+      }
+
+      return `position: ${this.isCreate ? 'static' : 'absolute'}; ${width}`;
     }
   },
   data () {
@@ -66,11 +77,16 @@ export default {
         activityIndex
       };
 
-      if (type === 'task') {
-        this.$store.dispatch('updateBoardWidths', activityIndex);
-      }
+      if (type === 'activity') {
+        this.$store.dispatch('updateBoardWidths', activityIndex + 1);
+      } else if (type === 'task') {
+        console.log('taskIndex', this.taskIndex);
+        if (this.taskIndex > 0) {
+          this.$store.dispatch('updateBoardWidths', activityIndex);
+        }
 
-      if (type === 'subtask') {
+        this.cardData.taskIndex = taskIndex;
+      } else if (type === 'subtask') {
         this.cardData.releaseIndex = releaseIndex;
         this.cardData.taskIndex = taskIndex;
         this.cardData.subtaskIndex = this.subtaskCardIds(this.taskIndex).length;
@@ -78,7 +94,6 @@ export default {
 
       this.isCreate = true;
       this.show = false;
-      // this.$store.dispatch('createCard', data);
     },
     saveCard () {
       console.log('save');
@@ -105,6 +120,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.board-body {
+  border: 0;
+}
+
 .new-card {
   right: 0;
   min-width: 16px;

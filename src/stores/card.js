@@ -141,7 +141,12 @@ export default {
     },
     updateBoardWidths (state, activityIndex) {
       const newBoardWidths = state.boardWidths.slice();
-      newBoardWidths[activityIndex] += 128;
+
+      if (activityIndex < newBoardWidths.length) {
+        newBoardWidths[activityIndex] += 128;
+      } else {
+        newBoardWidths.push(136); // 增加 activity card
+      }
 
       state.boardWidths = newBoardWidths;
     },

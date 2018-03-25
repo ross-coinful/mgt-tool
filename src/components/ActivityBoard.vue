@@ -7,7 +7,7 @@
 
       <draggable class="task-board" :options="{group:'card'}">
         <TaskCard v-for="(id, index) in taskCardIds" :id="id" :index="index" :key="id"></TaskCard>
-        <NewCard type="task" :activityIndex="activityIndex"></NewCard>
+        <NewCard type="task" :activityIndex="activityIndex" :taskIndex="taskCardIds.length"></NewCard>
       </draggable>
     </div>
 
@@ -56,15 +56,6 @@ export default {
   methods: {
     openCard () {
       this.$store.dispatch('openCard');
-    },
-    createCard () {
-      const data = {
-        type: 'task',
-        activityIndex: this.activityIndex,
-        taskIndex: this.taskCardIds.length
-      };
-
-      this.$store.dispatch('createCard', data);
     }
   }
 };
@@ -72,6 +63,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.board-body {
+  height: 100%;
+}
+
 .task-board {
   position: relative;
   display: flex;
