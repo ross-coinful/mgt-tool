@@ -5,24 +5,27 @@
   <!-- v-for taskIndexs 的長度 -->
 
     <draggable
-      v-for="(i, index) in taskCardNumber"
+      v-for="id in taskCardIds"
       class="subtask-list"
       :options="{group:'card'}"
-      :key="i"
-      :data-index="index"
-      @end="onEnd">
+      :key="id"
+      data-type="subtask"
+      :data-grandparentid="parentId"
+      :data-parentid="id"
+      :data-releaseid="releaseId"
+      @end="onEnd"
+    >
       <SubTaskCard
-        v-for="id in subtaskCardIds(index)"
+        v-for="id in subtaskCardIds(id)"
         :id="id"
-        :key="id">
-      </SubTaskCard>
+        :key="id"
+      />
       <NewCard
         type="subtask"
-        :activityIndex="activityIndex"
-        :releaseIndex="releaseIndex"
-        :taskIndex="index"
-        :subtaskCardIds="subtaskCardIds">
-      </NewCard>
+        :grandParentId="parentId"
+        :parentId="id"
+        :releaseId="releaseId"
+      />
     </draggable>
 
   </div>
@@ -41,12 +44,16 @@ export default {
       type: Number,
       required: true
     },
-    activityIndex: {
+    parentId: {
+      type: Number,
+      required: false
+    },
+    releaseId: {
       type: Number,
       required: true
     },
-    releaseIndex: {
-      type: Number,
+    onEnd: {
+      type: Function,
       required: true
     }
   },
@@ -60,27 +67,13 @@ export default {
     style () {
       return 'width: ' + this.width + 'px';
     },
-    taskCardNumber () {
-      return this.$store.getters.taskCardNumber(this.activityIndex);
+    taskCardIds () {
+      return this.$store.getters.taskCardIds(this.parentId);
     }
   },
   methods: {
-    subtaskCardIds (taskIndex) {
-      return this.$store.getters.subtaskCardIds(this.activityIndex, this.releaseIndex, taskIndex);
-    },
-    onEnd (evt) {
-      console.log('to', evt);
-      const id = evt.item.dataset.id;
-      const data = {
-        taskIndex: parseInt(evt.to.dataset.index, 10),
-        subtaskIndex: evt.newIndex
-      };
-
-      this.$store.dispatch('updateCard', {id, data});
-      // const oldTaskIndex = evt.from.dataset.index;
-      // const oldSubtaskIndex = evt.oldIndex;
-      // console.log('id', id, `from ${oldTaskIndex}, ${oldSubtaskIndex}`,  `to ${newTaskIndex}, ${newSubtaskIndex}`);
-      // this.$store.dispatch('updateCard');
+    subtaskCardIds (taskId) { // 下面的函數參數為 (grandParentId, parentId, releaseId)
+      return this.$store.getters.subtaskCardIds(this.parentId, taskId, this.releaseId);
     }
   },
   components: {

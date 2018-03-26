@@ -5,31 +5,32 @@
     <div class="board-list list-container" style="height: 180px">
       <ActivityBoard
         v-for="(id, index) in activityCardIds"
-        :id="id"
-        :activityIndex="index"
-        :taskCardIds="taskCardIds(index)"
+        :parentId="id"
+        :taskCardIds="taskCardIds(id)"
         :width="$store.state.card.boardWidths[index]"
-        :key="id">
+        :key="id"
+        :onEnd="onEnd">
       </ActivityBoard>
 
-      <NewCard type="activity" :activityIndex="activityCardIds.length" />
+      <NewCard type="activity" :activityNumber="activityCardIds.length" />
     </div>
 
     <div>
-      <div v-for="(release, releaseIndex) in releaseList" class="list-container" :key="release" :style="oneReleaseStyle">
+      <div v-for="release in releaseList" class="list-container" :key="release.id" :style="oneReleaseStyle">
         <div class="release-list">
           <div v-for="(width, index) in boardWidths" class="release-title" :style="{ width: width + 'px' }" :key="`width-${index}`">
-            <span v-show="index === 0">{{ release }}</span>
+            <span v-show="index === 0">{{ release.title }}</span>
           </div>
         </div>
 
         <div class="board-list">
           <TaskBoard
             v-for="(width, index) in boardWidths"
-            :activityIndex="index"
-            :releaseIndex="releaseIndex"
+            :parentId="activityCardIds[index]"
+            :releaseId="release.id"
             :width="boardWidths[index]"
-            :key="`width-${index}`">
+            :key="`width-${index}`"
+            :onEnd="onEnd">
           </TaskBoard>
         </div>
       </div>
@@ -133,6 +134,39 @@ export default {
         // this.isFocus = false;
         // this.isEdit = false;
       }
+    },
+    onEnd (evt) {
+      // const {
+      //   type: toType,
+      //   grandparentid: toGrandparentid,
+      //   parentid: toParentid,
+      //   releaseid: toReleaseid
+      // } = evt.to.dataset;
+      // const {
+      //   type: fromType,
+      //   grandparentid: fromGrandparentid,
+      //   parentid: fromParentid,
+      //   releaseid: fromReleaseid
+      // } = evt.from.dataset;
+      const id = evt.item.dataset.id;
+      const fromData = evt.from.dataset;
+      const toData = evt.to.dataset;
+      const data = {};
+
+      const fromKeys = Object.keys(fromData);
+      const toKeys = Object.keys(toData);
+      const allKey = fromKeys.length > toKeys.length ? fromKeys : toKeys;
+
+      allKey.forEach(key => {
+
+        if (fromData[key] !== toData[key]) {
+          data[key] = toData[key] || null;
+        }
+      });
+
+      data.order = evt.newIndex;
+
+      this.$store.dispatch('updateCard', {id, data});
     }
   },
   directives: {

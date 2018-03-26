@@ -1,13 +1,19 @@
 <template>
   <div style="position: relative">
     <div class="board-body" :style="style">
-      <draggable class="activity-board" :options="{group:'card'}">
-        <ActivityCard :id="id" :index="activityIndex"></ActivityCard>
-      </draggable>
+      <!-- <draggable class="activity-board" :options="{group:'card'}"> -->
+      <ActivityCard :id="parentId"></ActivityCard>
+      <!-- </draggable> -->
 
-      <draggable class="task-board" :options="{group:'card'}">
-        <TaskCard v-for="(id, index) in taskCardIds" :id="id" :index="index" :key="id"></TaskCard>
-        <NewCard type="task" :activityIndex="activityIndex" :taskIndex="taskCardIds.length"></NewCard>
+      <draggable
+        class="task-board"
+        :options="{group:'card'}"
+        data-type="activity"
+        :data-parentid="parentId"
+        @end="onEnd"
+      >
+        <TaskCard v-for="(id, index) in taskCardIds" :id="id" :index="index" :key="id" />
+        <NewCard type="task" :parentId="parentId" :taskNumber="taskCardIds.length" />
       </draggable>
     </div>
 
@@ -28,16 +34,12 @@ export default {
       type: Number,
       required: true
     },
-    id: {
+    parentId: {
       type: Number,
       required: true
     },
-    activityIndex: {
-      type: Number,
-      required: true
-    },
-    taskCardIds: {
-      type: Array,
+    onEnd: {
+      type: Function,
       required: true
     }
   },
@@ -45,6 +47,9 @@ export default {
   computed: {
     style () {
       return 'width: ' + this.width + 'px';
+    },
+    taskCardIds () {
+      return this.$store.getters.taskCardIds(this.parentId);
     }
   },
   components: {

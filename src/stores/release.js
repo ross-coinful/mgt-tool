@@ -4,7 +4,7 @@ import { localServer } from '../../data';
 
 export default {
   state: {
-    releaseList: ['card']
+    releaseList: []
   },
   actions: {
     getReleaseList ({ commit }) {
@@ -31,7 +31,7 @@ export default {
     getReleaseListSuc (state, list) {
       state.getReleaseList = false;
       state.getReleaseListSuc = true;
-      state.releaseList = list;
+      state.releaseList = list.sort((a, b) => a.order - b.order);
     },
     getReleaseListErr (state, err) {
       state.getReleaseList = false;

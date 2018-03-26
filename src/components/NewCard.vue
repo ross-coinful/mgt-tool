@@ -23,20 +23,24 @@ export default {
       type: String,
       required: true
     },
-    activityIndex: {
-      type: Number,
-      required: true
-    },
-    taskIndex: {
+    activityNumber: {
       type: Number,
       required: false
     },
-    releaseIndex: {
+    taskNumber: {
       type: Number,
       required: false
     },
-    subtaskCardIds: {
-      type: Function,
+    parentId: {
+      type: Number,
+      required: false
+    },
+    grandParentId: {
+      type: Number,
+      required: false
+    },
+    releaseId: {
+      type: Number,
       required: false
     }
   },
@@ -48,8 +52,8 @@ export default {
     setClass () {
       return `card ${this.isFocus ? 'focus' : ''} ${this.type}-card`;
     },
-    noBorder () { // type === 'activity' 才 work
-      return `${this.$store.state.card.boardWidths.length === this.activityIndex ? 'border: 0' : ''}`;
+    noBorder () { // 只有初始沒有任何activity card時, 才有border
+      return `${this.type === 'activity' && this.$store.state.card.boardWidths.length === this.activityNumber ? 'border: 0' : ''}`;
     },
     style () {
       const position = `position: ${this.isCreate ? 'static' : 'absolute'};`;
@@ -60,7 +64,7 @@ export default {
         return `${position} width: 100%`;
       } else if (this.type === 'task') {
 
-        if (this.taskIndex > 0 && !this.isCreate) {
+        if (this.taskNumber > 0 && !this.isCreate) {
           return `${position} width: 20px; height: 100%; top: 0; display: flex; align-items: center`;
         } else {
           return `${position} width: 100%`;
@@ -78,25 +82,35 @@ export default {
   },
   methods: {
     createCard (e) {
-      const { type, activityIndex, releaseIndex, taskIndex } = this;
+      const { type, grandParentId, parentId, releaseId, activityNumber } = this;
 
       this.cardData = {
-        type,
-        activityIndex
+        type
       };
 
-      if (type === 'activity' && activityIndex > 0) { // 首次創立時 index = 0, 但已經有初始值所以不用update
-        this.$store.dispatch('updateBoardWidths', activityIndex + 1);
+      if (type === 'activity' && activityNumber > 0) { // 首次創立時 index = 0, 但已經有初始值所以不用update
+        this.$store.dispatch('updateBoardWidths', activityNumber);
       } else if (type === 'task') {
-        if (this.taskIndex > 0) {
+
+        if (this.taskNumber > 0) {
+          const activityIndex = this.$store.getters.activityCardIds.findIndex(value => value === parentId);
           this.$store.dispatch('updateBoardWidths', activityIndex);
         }
-
-        this.cardData.taskIndex = taskIndex;
+        this.cardData.parentId = parentId;
       } else if (type === 'subtask') {
-        this.cardData.releaseIndex = releaseIndex;
-        this.cardData.taskIndex = taskIndex;
-        this.cardData.subtaskIndex = this.subtaskCardIds(this.taskIndex).length;
+        const subtaskCardIds = this.$store.getters.subtaskCardIds(grandParentId, parentId, releaseId);
+
+        if (subtaskCardIds.length > 0) {
+          const lastId = subtaskCardIds[subtaskCardIds.length - 1];
+          const newOrder = this.$store.getters.card(lastId).order + 1;
+          this.cardData.order = newOrder;
+        } else {
+          this.cardData.order = 0;
+        }
+
+        this.cardData.grandParentId = grandParentId;
+        this.cardData.parentId = parentId;
+        this.cardData.releaseId = releaseId;
       }
 
       this.isCreate = true;

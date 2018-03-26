@@ -14,10 +14,6 @@ export default {
     id: {
       type: Number,
       require: true
-    },
-    index: {
-      type: Number,
-      required: true
     }
   },
   store,
@@ -26,7 +22,7 @@ export default {
   },
   computed: {
     card () {
-      return this.$store.getters.activityCard(this.id, this.index);
+      return this.$store.getters.card(this.id);
     }
   }
 };

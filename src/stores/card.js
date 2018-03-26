@@ -98,25 +98,19 @@ export default {
   },
   getters: {
     activityCardIds: (state) => {
-      return sortIndex(state.cardList.filter(card => card.type === 'activity'), 'activity').map(card => card.id);
+      return sortOrder(state.cardList.filter(card => card.type === 'activity')).map(card => card.id);
     },
-    activityCard: (state) => (id, index) => {
-      return state.cardList.find(card => card.id === id && card.activityIndex === index);
+    taskCardIds: (state) => (id) => {
+      return sortOrder(state.cardList.filter(card => card.type === 'task' && card.parentId === id)).map(card => card.id);
     },
-    taskCardIds: (state) => (index) => {
-      return sortIndex(state.cardList.filter(card => card.type === 'task' && card.activityIndex === index), 'task').map(card => card.id);
-    },
-    taskCardNumber: (state, getters) => (index) => {
-      return getters.taskCardIds(index).length;
+    subtaskCardIds: (state) => (grandParentId, parentId, releaseId) => {
+      return sortOrder(state.cardList.filter(card => card.type === 'subtask' &&
+        card.grandParentId === grandParentId &&
+        card.parentId === parentId &&
+        card.releaseId === releaseId)).map(card => card.id);
     },
     card: (state) => (id) => {
       return state.cardList.find(card => card.id === id);
-    },
-    subtaskCardIds: (state) => (activityIndex, releaseIndex, taskIndex) => {
-      return state.cardList.filter(card => card.type === 'subtask' &&
-        card.activityIndex === activityIndex &&
-        card.releaseIndex === releaseIndex &&
-        card.taskIndex === taskIndex).map(card => card.id);
     },
     boardWidths: state => state.boardWidths
   },
@@ -198,13 +192,13 @@ export default {
 };
 
 function calcBoardWidths (list) {
-  const activityNumber = list.filter(card => card.type === 'activity').length;
+  const activityCardIds = sortOrder(list.filter(card => card.type === 'activity')).map(card => card.id);
   const widths = [];
 
-  for (let i = 0; i < activityNumber; i++) {
-    const taskNumber = list.filter(card => card.type === 'task' && card.activityIndex === i).length;
+  activityCardIds.forEach(value => {
+    const taskNumber = list.filter(card => card.type === 'task' && card.parentId === value).length;
     widths.push(taskNumber * 128 + 8);
-  }
+  });
 
   if (widths.length === 0) {
     widths.push(defaultWidth);
@@ -213,7 +207,6 @@ function calcBoardWidths (list) {
   return widths;
 }
 
-function sortIndex (list, type) {
-  const typeIndex = `${type}Index`;
-  return list.sort((a, b) => a[typeIndex] - b[typeIndex]);
+function sortOrder (list) {
+  return list.sort((a, b) => a.order - b.order);
 }

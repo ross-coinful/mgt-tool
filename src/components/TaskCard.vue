@@ -13,10 +13,6 @@ export default {
     id: {
       type: Number,
       require: true
-    },
-    index: {
-      type: Number,
-      require: true
     }
   },
   computed: {
