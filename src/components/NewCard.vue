@@ -5,9 +5,9 @@
         <textarea v-model="title" v-focus @blur="saveCard" autofocus></textarea>
       </div>
       <div v-else class="add-card-container">
-        <div v-show="show" class="add-card" @click="createCard">
+        <span v-show="show" class="add-card" @click="createCard">
           <Icon type="plus-circled" size="16"></Icon>
-        </div>
+        </span>
       </div>
     </div>
   </div>
@@ -52,15 +52,20 @@ export default {
       return `${this.$store.state.card.boardWidths.length === this.activityIndex ? 'border: 0' : ''}`;
     },
     style () {
-      let width = 'width: 20px';
+      const position = `position: ${this.isCreate ? 'static' : 'absolute'};`;
 
       if (this.type === 'activity') {
         return 'position: relative; width: 128px';
       } else if (this.type === 'subtask') {
-        width = 'width: 100%';
-      }
+        return `${position} width: 100%`;
+      } else if (this.type === 'task') {
 
-      return `position: ${this.isCreate ? 'static' : 'absolute'}; ${width}`;
+        if (this.taskIndex > 0 && !this.isCreate) {
+          return `${position} width: 20px; height: 100%; top: 0; display: flex; align-items: center`;
+        } else {
+          return `${position} width: 100%`;
+        }
+      }
     }
   },
   data () {
@@ -145,9 +150,10 @@ textarea {
   position: absolute;
   width: 100%;
   height: 20px;
+  text-align: center;
 }
 
 .add-card {
-  text-align: center;
+  cursor: pointer;
 }
 </style>
