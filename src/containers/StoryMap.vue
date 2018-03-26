@@ -1,7 +1,8 @@
 <template>
 
   <div class="story-map">
-    <div class="board-list list-container">
+
+    <div class="board-list list-container" style="height: 180px">
       <ActivityBoard
         v-for="(id, index) in activityCardIds"
         :id="id"
@@ -12,11 +13,10 @@
       </ActivityBoard>
 
       <NewCard type="activity" :activityIndex="activityCardIds.length" />
-
     </div>
 
     <div>
-      <div v-for="(release, releaseIndex) in releaseList" class="list-container" :key="release">
+      <div v-for="(release, releaseIndex) in releaseList" class="list-container" :key="release" :style="oneReleaseStyle">
         <div class="release-list">
           <div v-for="(width, index) in boardWidths" class="release-title" :style="{ width: width + 'px' }" :key="`width-${index}`">
             <span v-show="index === 0">{{ release }}</span>
@@ -25,11 +25,11 @@
 
         <div class="board-list">
           <TaskBoard
-            v-for="(id, index) in activityCardIds"
+            v-for="(width, index) in boardWidths"
             :activityIndex="index"
             :releaseIndex="releaseIndex"
             :width="boardWidths[index]"
-            :key="id">
+            :key="`width-${index}`">
           </TaskBoard>
         </div>
       </div>
@@ -80,7 +80,10 @@ export default {
       'activityCardIds',
       'releaseList',
       'boardWidths'
-    ])
+    ]),
+    oneReleaseStyle () {
+      return this.releaseList.length === 1 ? 'display: flex; flex-direction: column; height: calc(100vh - 248px)' : '';
+    }
   },
   mounted () {
     this.$store.dispatch('getCardList');
@@ -157,6 +160,14 @@ export default {
 .release-list {
   display: flex;
   flex-direction: row;
+}
+
+.release-list {
+  line-height: 21px;
+}
+
+.board-list {
+  flex: 1;
 }
 
 .release-title {

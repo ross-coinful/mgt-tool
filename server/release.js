@@ -13,7 +13,7 @@ router.get('/list', (req, res) => {
       );
     }
 
-    return res.status(200).json(releaseList).end();
+    return res.status(200).json(['card']).end();
   }, 500);
 });
 

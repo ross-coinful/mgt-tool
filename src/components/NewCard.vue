@@ -1,5 +1,5 @@
 <template>
-  <div :class="boardBodyClass">
+  <div :class="boardBodyClass" :style="noBorder">
     <div class="new-card" :style="style" @mouseover="show = true" @mouseout="show = false">
       <div v-if="isCreate" :class="setClass">
         <textarea v-model="title" v-focus @blur="saveCard" autofocus></textarea>
@@ -48,6 +48,9 @@ export default {
     setClass () {
       return `card ${this.isFocus ? 'focus' : ''} ${this.type}-card`;
     },
+    noBorder () { // type === 'activity' 才 work
+      return `${this.$store.state.card.boardWidths.length === this.activityIndex ? 'border: 0' : ''}`;
+    },
     style () {
       let width = 'width: 20px';
 
@@ -77,10 +80,9 @@ export default {
         activityIndex
       };
 
-      if (type === 'activity') {
+      if (type === 'activity' && activityIndex > 0) { // 首次創立時 index = 0, 但已經有初始值所以不用update
         this.$store.dispatch('updateBoardWidths', activityIndex + 1);
       } else if (type === 'task') {
-        console.log('taskIndex', this.taskIndex);
         if (this.taskIndex > 0) {
           this.$store.dispatch('updateBoardWidths', activityIndex);
         }
@@ -121,7 +123,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .board-body {
-  border: 0;
+  padding-right: 3px; /* 4px - 1px border*/
 }
 
 .new-card {

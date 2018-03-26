@@ -45,7 +45,7 @@ router.get('/list', (req, res) => {
     //   cardList.push(card);
     // }
 
-    return res.status(200).json(cardList).end();
+    return res.status(200).json([]).end();
   }, 500);
 });
 

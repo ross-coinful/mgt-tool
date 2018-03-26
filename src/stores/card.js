@@ -2,12 +2,14 @@
 import axios from 'axios';
 import { localServer } from '../../data';
 
+const defaultWidth = 136;
+
 export default {
   state: {
     focusId: null,
     isOpen: false,
     cardList: [],
-    boardWidths: []
+    boardWidths: [defaultWidth]
   },
   actions: {
     setFocusId ({ commit }, id) {
@@ -144,8 +146,9 @@ export default {
 
       if (activityIndex < newBoardWidths.length) {
         newBoardWidths[activityIndex] += 128;
-      } else {
-        newBoardWidths.push(136); // 增加 activity card
+      } else if (activityIndex !== 0) {
+        console.log('push');
+        newBoardWidths.push(defaultWidth); // 增加 activity card
       }
 
       state.boardWidths = newBoardWidths;
@@ -201,6 +204,10 @@ function calcBoardWidths (list) {
   for (let i = 0; i < activityNumber; i++) {
     const taskNumber = list.filter(card => card.type === 'task' && card.activityIndex === i).length;
     widths.push(taskNumber * 128 + 8);
+  }
+
+  if (widths.length === 0) {
+    widths.push(defaultWidth);
   }
 
   return widths;

@@ -4,7 +4,7 @@ import { localServer } from '../../data';
 
 export default {
   state: {
-    releaseList: []
+    releaseList: ['card']
   },
   actions: {
     getReleaseList ({ commit }) {
