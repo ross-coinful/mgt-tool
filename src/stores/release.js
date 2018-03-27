@@ -1,6 +1,7 @@
 // import apiClient from '../helpers/apiClient';
 import axios from 'axios';
 import { localServer } from '../../data';
+import { sortList } from '../utils';
 
 export default {
   state: {
@@ -31,7 +32,7 @@ export default {
     getReleaseListSuc (state, list) {
       state.getReleaseList = false;
       state.getReleaseListSuc = true;
-      state.releaseList = list.sort((a, b) => a.order - b.order);
+      state.releaseList = sortList(list);
     },
     getReleaseListErr (state, err) {
       state.getReleaseList = false;

@@ -8,7 +8,7 @@
       <draggable
         class="task-board"
         :options="{group:'card'}"
-        data-type="activity"
+        data-type="task"
         :data-parentid="parentId"
         @end="onEnd"
       >

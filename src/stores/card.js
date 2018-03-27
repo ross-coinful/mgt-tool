@@ -1,7 +1,7 @@
 // import apiClient from '../helpers/apiClient';
 import axios from 'axios';
 import { localServer } from '../../data';
-
+import { sortList } from '../utils';
 const defaultWidth = 136;
 
 export default {
@@ -59,8 +59,9 @@ export default {
         commit('addCardErr', error);
       });
     },
-    updateCard ({ commit }, { id, data }) {
-      commit('updateCard');
+    updateCard ({ commit, getters }, { id, data }) {
+      console.log('updatecard');
+      commit('updateCard', { id, data, getters });
 
       axios({
         method: 'patch',
@@ -68,7 +69,7 @@ export default {
         data
       })
       .then((response) => {
-        commit('updateCardSuc', data);
+        commit('updateCardSuc');
       }, (error) => {
         commit('updateCardErr', error);
       });
@@ -98,14 +99,14 @@ export default {
   },
   getters: {
     activityCardIds: (state) => {
-      return sortOrder(state.cardList.filter(card => card.type === 'activity')).map(card => card.id);
+      return sortList(state.cardList.filter(card => card.type === 'activity')).map(value => value.id);
     },
     taskCardIds: (state) => (id) => {
-      return sortOrder(state.cardList.filter(card => card.type === 'task' && card.parentId === id)).map(card => card.id);
+      return sortList(state.cardList.filter(card => card.type === 'task' && card.parentId === id)).map(card => card.id);
     },
-    subtaskCardIds: (state) => (grandParentId, parentId, releaseId) => {
-      return sortOrder(state.cardList.filter(card => card.type === 'subtask' &&
-        card.grandParentId === grandParentId &&
+    subtaskCardIds: (state) => (grandparentId, parentId, releaseId) => {
+      return sortList(state.cardList.filter(card => card.type === 'subtask' &&
+        card.grandparentId === grandparentId &&
         card.parentId === parentId &&
         card.releaseId === releaseId)).map(card => card.id);
     },
@@ -153,18 +154,74 @@ export default {
     addCardSuc (state, card) {
       state.addCard = false;
       state.addCardSuc = true;
-      state.cardList.push(card);
-      // state.createCard = false;
-
+      // state.cardList.push(card);
     },
     addCardErr (state, err) {
       state.addCard = false;
       state.addCardErr = err;
     },
-    updateCard (state) {
+    updateCard (state, { id, data, getters }) {
       state.updateCard = true;
+      const _id = parseInt(id, 10);
+      const cardIndex = state.cardList.findIndex(value => value.id === _id);
+      const card = state.cardList[cardIndex];
+      const _card = Object.assign({}, card);
+
+      Object.keys(data).forEach(key => {
+
+        if (data[key] === null) {
+
+          if (key in _card) {
+            delete _card[key];
+          }
+        } else {
+          _card[key] = data[key];
+        }
+      });
+
+      let oldListIds = [];
+
+      if (card.type === 'task') {
+        oldListIds = getters.taskCardIds(card.parentId);
+      } else if (card.type === 'subtask') {
+        oldListIds = getters.subtaskCardIds(card.grandparentId, card.parentId, card.releaseId);
+      }
+
+      let newListIds = [];
+
+      if (_card.type === 'task') {
+        newListIds = getters.taskCardIds(_card.parentId);
+      } else if (_card.type === 'subtask') {
+        const grandparentId = _card.grandparentId || card.grandparentId;
+        const parentId = _card.parentId || card.parentId;
+        const releaseId = _card.releaseId || card.releaseId;
+
+        newListIds = getters.subtaskCardIds(grandparentId, parentId, releaseId);
+      }
+
+      const newCardList = state.cardList.slice();
+      newCardList[cardIndex] = _card;
+
+      if (newListIds.indexOf(_id) === -1) { // does leave origin list, true = yes
+        oldListIds.splice(oldListIds.indexOf(_id), 1); // 把自己移除
+
+        updatePrevId(oldListIds, newCardList);
+      } else {
+        newListIds.splice(newListIds.indexOf(_id), 1); // 把自己移除
+      }
+
+      // 在新位子加入自己
+      const newIndex = 'prevId' in data ? newListIds.findIndex(id => id === data.prevId) + 1 : 0;
+      newListIds.splice(newIndex, 0, _id);
+      updatePrevId(newListIds, newCardList);
+
+      state.cardList = newCardList;
+
+      if (card.type === 'task' || _card.type === 'task') {
+        state.boardWidths = calcBoardWidths(newCardList);
+      }
     },
-    updateCardSuc (state, id, data) {
+    updateCardSuc (state) {
       state.updateCard = false;
       state.updateCardSuc = true;
     },
@@ -192,7 +249,7 @@ export default {
 };
 
 function calcBoardWidths (list) {
-  const activityCardIds = sortOrder(list.filter(card => card.type === 'activity')).map(card => card.id);
+  const activityCardIds = sortList(list.filter(card => card.type === 'activity')).map(card => card.id);
   const widths = [];
 
   activityCardIds.forEach(value => {
@@ -207,6 +264,22 @@ function calcBoardWidths (list) {
   return widths;
 }
 
-function sortOrder (list) {
-  return list.sort((a, b) => a.order - b.order);
+function updatePrevId (listIds, cardList) {
+  console.log('listIds', listIds);
+  listIds.forEach((id, index) => {
+    const card = cardList.find(value => value.id === id);
+
+    if (index === 0) {
+      console.log('id', id, card.prevId);
+      if ('prevId' in card) {
+
+        console.log('card', card);
+        delete card.prevId;
+
+        console.log('delete card', card);
+      }
+    } else {
+      card.prevId = listIds[index - 1];
+    }
+  });
 }

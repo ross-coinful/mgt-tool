@@ -22,7 +22,7 @@
       />
       <NewCard
         type="subtask"
-        :grandParentId="parentId"
+        :grandparentId="parentId"
         :parentId="id"
         :releaseId="releaseId"
       />
@@ -72,7 +72,7 @@ export default {
     }
   },
   methods: {
-    subtaskCardIds (taskId) { // 下面的函數參數為 (grandParentId, parentId, releaseId)
+    subtaskCardIds (taskId) { // 下面的函數參數為 (grandparentId, parentId, releaseId)
       return this.$store.getters.subtaskCardIds(this.parentId, taskId, this.releaseId);
     }
   },

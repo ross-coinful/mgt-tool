@@ -136,18 +136,6 @@ export default {
       }
     },
     onEnd (evt) {
-      // const {
-      //   type: toType,
-      //   grandparentid: toGrandparentid,
-      //   parentid: toParentid,
-      //   releaseid: toReleaseid
-      // } = evt.to.dataset;
-      // const {
-      //   type: fromType,
-      //   grandparentid: fromGrandparentid,
-      //   parentid: fromParentid,
-      //   releaseid: fromReleaseid
-      // } = evt.from.dataset;
       const id = evt.item.dataset.id;
       const fromData = evt.from.dataset;
       const toData = evt.to.dataset;
@@ -157,14 +145,42 @@ export default {
       const toKeys = Object.keys(toData);
       const allKey = fromKeys.length > toKeys.length ? fromKeys : toKeys;
 
+      // 不含 prevId, 所以不會送 prevId = null 資料給server, 在store裡的檢查要小心
       allKey.forEach(key => {
 
         if (fromData[key] !== toData[key]) {
-          data[key] = toData[key] || null;
+          const idIndex = key.indexOf('id');
+          const _key = idIndex !== -1 ? key.slice(0, idIndex) + 'Id' : key;
+          let toValue = toData[key];
+
+          if (typeof toValue === 'undefined') {
+            toValue = null;
+          } else if (idIndex !== -1 && typeof toData[key] === 'string') {
+            toValue = parseInt(toValue, 10);
+          }
+
+          data[_key] = toValue;
         }
       });
 
-      data.order = evt.newIndex;
+      if (evt.newIndex !== 0) {
+
+        console.log('toData', toData, evt.newIndex);
+        const { type } = toData;
+        let prevId = null;
+
+        if (type === 'task') {
+          const taskCardIds = this.$store.getters.taskCardIds(parseInt(toData.parentid, 10));
+
+          prevId = taskCardIds[evt.newIndex - 1];
+        } else if (type === 'subtask') {
+          const subtaskCardIds = this.$store.getters.subtaskCardIds(toData.grandparentid, toData.parentid, toData.releaseid);
+
+          prevId = subtaskCardIds[evt.newIndex - 1];
+        }
+
+        data.prevId = prevId;
+      }
 
       this.$store.dispatch('updateCard', {id, data});
     }
