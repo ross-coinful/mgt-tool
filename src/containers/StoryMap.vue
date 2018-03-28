@@ -9,30 +9,33 @@
         :taskCardIds="taskCardIds(id)"
         :width="$store.state.card.boardWidths[index]"
         :key="id"
-        :onEnd="onEnd">
+        :onEnd="onEnd"
+        :onMove="onMove">
       </ActivityBoard>
 
       <NewCard type="activity" :activityNumber="activityCardIds.length" />
     </div>
 
     <div>
-      <div v-for="release in releaseList" class="list-container" :key="release.id" :style="oneReleaseStyle">
-        <div class="release-list">
-          <div v-for="(width, index) in boardWidths" class="release-title" :style="{ width: width + 'px' }" :key="`width-${index}`">
-            <span v-show="index === 0">{{ release.title }}</span>
+      <div v-for="release in releaseList" class="board-list list-container" :key="release.id" :style="oneReleaseStyle">
+        <TaskBoard
+          v-for="(width, index) in boardWidths"
+          :parentId="activityCardIds[index]"
+          :releaseId="release.id"
+          :releaseTitle="release.title"
+          :width="calcWidth(width, index)"
+          :index="index"
+          :key="`width-${index}`"
+          :onEnd="onEnd"
+          :onMove="onMove">
+        </TaskBoard>
+
+        <!-- 補齊右邊 release title 的底線 -->
+        <div style="flex: 1">
+          <div style="height: 21px; border-bottom: 1px dotted #bbb">
           </div>
         </div>
 
-        <div class="board-list">
-          <TaskBoard
-            v-for="(width, index) in boardWidths"
-            :parentId="activityCardIds[index]"
-            :releaseId="release.id"
-            :width="boardWidths[index]"
-            :key="`width-${index}`"
-            :onEnd="onEnd">
-          </TaskBoard>
-        </div>
       </div>
     </div>
 
@@ -103,7 +106,9 @@ export default {
       isFocusDetail: false,
       cardTitle: this.title,
       cardDetail: this.detail,
-      isSubtask: false
+      isSubtask: false,
+      addWidthIndex: null,
+      subtractWidthIndex: null
     };
   },
   methods: {
@@ -172,7 +177,10 @@ export default {
 
           prevId = taskCardIds[evt.newIndex - 1] || null;
         } else if (type === 'subtask') {
-          const subtaskCardIds = this.$store.getters.subtaskCardIds(parseInt(toData.grandparentid, 10), parseInt(toData.parentid, 10), parseInt(toData.releaseid, 10));
+          const grandparentid = parseInt(toData.grandparentid, 10);
+          const parentid = parseInt(toData.parentid, 10);
+          const releaseid = parseInt(toData.releaseid, 10);
+          const subtaskCardIds = this.$store.getters.subtaskCardIds(grandparentid, parentid, releaseid);
 
           prevId = subtaskCardIds[evt.newIndex - 1] || null;
         }
@@ -181,6 +189,55 @@ export default {
       }
 
       this.$store.dispatch('updateCard', {id, data});
+      this.addWidthIndex = null;
+      this.subtractWidthIndex = null;
+    },
+    onMove (evt) {
+      const { draggedContext, relatedContext, from, to } = evt;
+      const fromType = from.dataset.type;
+      const toType = to.dataset.type;
+      const draggedId = draggedContext.element;
+      const relatedId = relatedContext.element;
+
+      // does change board width
+      if (fromType === 'task' && toType === 'subtask') {
+        const parentId = this.$store.getters.card(draggedId).parentId;
+        const activityIndex = this.activityCardIds.indexOf(parentId);
+
+        this.addWidthIndex = null;
+        this.subtractWidthIndex = activityIndex;
+      } else if (fromType === 'task' && toType === 'task' && typeof relatedId !== 'undefined') {
+        const draggedParentId = this.$store.getters.card(draggedId).parentId;
+        const relatedParentId = this.$store.getters.card(relatedId).parentId;
+        const draggedActivityIndex = this.activityCardIds.indexOf(draggedParentId);
+        const relatedActivityIndex = this.activityCardIds.indexOf(relatedParentId);
+
+        if (draggedActivityIndex !== relatedActivityIndex) {
+          this.addWidthIndex = relatedActivityIndex;
+          this.subtractWidthIndex = draggedActivityIndex;
+        }
+      } else if (fromType === 'subtask' && toType === 'task' && typeof relatedId !== 'undefined') {
+        const parentId = this.$store.getters.card(relatedId).parentId;
+        const activityIndex = this.activityCardIds.indexOf(parentId);
+
+        this.addWidthIndex = activityIndex;
+        this.subtractWidthIndex = null;
+      } else {
+        this.addWidthIndex = null;
+        this.subtractWidthIndex = null;
+      }
+
+      return true;
+    },
+    calcWidth (width, index) {
+      let _width = width;
+
+      if (index === this.addWidthIndex) {
+        _width += 128;
+      } else if (index === this.subtractWidthIndex) {
+        _width -= 128;
+      }
+      return _width;
     }
   },
   directives: {
@@ -208,22 +265,6 @@ export default {
 .release-list {
   display: flex;
   flex-direction: row;
-}
-
-.release-list {
-  line-height: 21px;
-}
-
-.board-list {
-  flex: 1;
-}
-
-.release-title {
-  padding-left: 8px;
-  border-right: 1px dotted #bbb;
-  border-bottom: 1px dotted #bbb;
-  color: #66b9e1;
-  font-size: 14px;
 }
 
 .release-title:last-child {

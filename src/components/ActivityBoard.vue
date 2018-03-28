@@ -11,6 +11,8 @@
         data-type="task"
         :data-parentid="parentId"
         @end="onEnd"
+        :list="taskCardIds"
+        :move="onMove"
       >
         <TaskCard v-for="(id, index) in taskCardIds" :id="id" :index="index" :key="id" />
         <NewCard type="task" :parentId="parentId" :taskNumber="taskCardIds.length" />
@@ -39,6 +41,10 @@ export default {
       required: true
     },
     onEnd: {
+      type: Function,
+      required: true
+    },
+    onMove: {
       type: Function,
       required: true
     }

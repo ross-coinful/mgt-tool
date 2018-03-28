@@ -1,33 +1,37 @@
 <template>
+  <div class="task-board" :style="style">
+    <div class="release-title">
+      <span v-if="index === 0">{{ releaseTitle }}</span>
+    </div>
+    <div class="board-body">
 
-  <div class="board-body" :style="style">
-
-  <!-- v-for taskIndexs 的長度 -->
-
-    <draggable
-      v-for="id in taskCardIds"
-      class="subtask-list"
-      :options="{group:'card'}"
-      :key="id"
-      data-type="subtask"
-      :data-grandparentid="parentId"
-      :data-parentid="id"
-      :data-releaseid="releaseId"
-      @end="onEnd"
-    >
-      <SubTaskCard
-        v-for="id in subtaskCardIds(id)"
-        :id="id"
+      <draggable
+        v-for="id in taskCardIds"
+        class="subtask-list"
+        :options="{group:'card'}"
         :key="id"
-      />
-      <NewCard
-        type="subtask"
-        :grandparentId="parentId"
-        :parentId="id"
-        :releaseId="releaseId"
-      />
-    </draggable>
+        data-type="subtask"
+        :data-grandparentid="parentId"
+        :data-parentid="id"
+        :data-releaseid="releaseId"
+        @end="onEnd"
+        :list="subtaskCardIds(id)"
+        :move="onMove"
+      >
+        <SubTaskCard
+          v-for="id in subtaskCardIds(id)"
+          :id="id"
+          :key="id"
+        />
+        <NewCard
+          type="subtask"
+          :grandparentId="parentId"
+          :parentId="id"
+          :releaseId="releaseId"
+        />
+      </draggable>
 
+    </div>
   </div>
 </template>
 
@@ -52,7 +56,19 @@ export default {
       type: Number,
       required: true
     },
+    releaseTitle: {
+      type: String,
+      required: true
+    },
+    index: {
+      type: Number,
+      required: true
+    },
     onEnd: {
+      type: Function,
+      required: true
+    },
+    onMove: {
       type: Function,
       required: true
     }
@@ -104,15 +120,30 @@ export default {
   background-repeat: repeat-x;*/
 /*}*/
 
+.task-board {
+  display: flex;
+  flex-direction: column;
+}
+
 .board-body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  flex: 1;
   padding-right: 0;
 }
 
 .subtask-list {
   position: relative;
   width: 128px;
+}
+
+.release-title {
+  height: 21px;
+  padding-left: 8px;
+  border-right: 1px dotted #bbb;
+  border-bottom: 1px dotted #bbb;
+  color: #66b9e1;
+  font-size: 14px;
 }
 </style>

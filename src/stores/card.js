@@ -154,7 +154,8 @@ export default {
     addCardSuc (state, card) {
       state.addCard = false;
       state.addCardSuc = true;
-      // state.cardList.push(card);
+      // state.cardList = state.cardList.slice().push(card);
+      state.cardList.push(card);
     },
     addCardErr (state, err) {
       state.addCard = false;

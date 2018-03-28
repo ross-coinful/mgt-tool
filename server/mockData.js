@@ -13,7 +13,7 @@ const cardList = [
   {'id': 3, 'title': 'task-3', 'type': 'task', 'parentId': 0, 'prevId': 9},
   {'id': 12, 'title': 'subtask-12', 'type': 'subtask', 'grandparentId': 0, 'parentId': 6, 'releaseId': 3, 'labelId': 0},
   {'id': 18, 'title': 'subtask-18', 'type': 'subtask', 'grandparentId': 0, 'parentId': 9, 'releaseId': 3, 'labelId': 1},
-  {'id': 24, 'title': 'subtask-24', 'type': 'subtask', 'grandparentId': 0, 'parentId': 3, 'releaseId': 3, 'labelId': 0},
+  // {'id': 24, 'title': 'subtask-24', 'type': 'subtask', 'grandparentId': 0, 'parentId': 3, 'releaseId': 3, 'labelId': 0},
   {'id': 21, 'title': 'subtask-21', 'type': 'subtask', 'grandparentId': 0, 'parentId': 6, 'releaseId': 1, 'labelId': 3},
   {'id': 15, 'title': 'subtask-15', 'type': 'subtask', 'grandparentId': 0, 'parentId': 9, 'releaseId': 1, 'labelId': 2},
   {'id': 27, 'title': 'subtask-27', 'type': 'subtask', 'grandparentId': 0, 'parentId': 9, 'releaseId': 1, 'labelId': 2, 'prevId': 15},

@@ -83,6 +83,7 @@ export default {
   methods: {
     createCard (e) {
       const { type, grandparentId, parentId, releaseId, activityNumber } = this;
+      const activityCardIds = this.$store.getters.activityCardIds;
 
       this.cardData = {
         type
@@ -90,24 +91,22 @@ export default {
 
       if (type === 'activity' && activityNumber > 0) { // 首次創立時 index = 0, 但已經有初始值所以不用update
         this.$store.dispatch('updateBoardWidths', activityNumber);
+        this.cardData.prevId = activityCardIds[activityCardIds.length - 1];
       } else if (type === 'task') {
+        const taskCardIds = this.$store.getters.taskCardIds(parentId);
 
         if (this.taskNumber > 0) {
-          const activityIndex = this.$store.getters.activityCardIds.findIndex(value => value === parentId);
+          const activityIndex = activityCardIds.findIndex(value => value === parentId);
           this.$store.dispatch('updateBoardWidths', activityIndex);
+          this.cardData.prevId = taskCardIds[taskCardIds.length - 1];
         }
         this.cardData.parentId = parentId;
       } else if (type === 'subtask') {
         const subtaskCardIds = this.$store.getters.subtaskCardIds(grandparentId, parentId, releaseId);
 
         if (subtaskCardIds.length > 0) {
-          // const lastId = subtaskCardIds[subtaskCardIds.length - 1];
-          // const newOrder = this.$store.getters.card(lastId).order + 1;
-          // this.cardData.order = newOrder;
-        } else {
-          // this.cardData.order = 0;
+          this.cardData.prevId = subtaskCardIds[subtaskCardIds.length - 1];
         }
-
         this.cardData.grandparentId = grandparentId;
         this.cardData.parentId = parentId;
         this.cardData.releaseId = releaseId;
