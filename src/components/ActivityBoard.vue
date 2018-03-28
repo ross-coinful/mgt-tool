@@ -1,6 +1,6 @@
 <template>
   <div style="position: relative">
-    <div class="board-body" :style="style">
+    <div class="board-body">
       <!-- <draggable class="activity-board" :options="{group:'card'}"> -->
       <ActivityCard :id="parentId"></ActivityCard>
       <!-- </draggable> -->
@@ -45,9 +45,6 @@ export default {
   },
   store,
   computed: {
-    style () {
-      return 'width: ' + this.width + 'px';
-    },
     taskCardIds () {
       return this.$store.getters.taskCardIds(this.parentId);
     }
@@ -57,6 +54,11 @@ export default {
     TaskCard,
     NewCard,
     draggable
+  },
+  data () {
+    return {
+      addWidth: 0
+    };
   },
   methods: {
     openCard () {

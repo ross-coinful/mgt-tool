@@ -164,19 +164,17 @@ export default {
       });
 
       if (evt.newIndex !== 0) {
-
-        console.log('toData', toData, evt.newIndex);
         const { type } = toData;
         let prevId = null;
 
         if (type === 'task') {
           const taskCardIds = this.$store.getters.taskCardIds(parseInt(toData.parentid, 10));
 
-          prevId = taskCardIds[evt.newIndex - 1];
+          prevId = taskCardIds[evt.newIndex - 1] || null;
         } else if (type === 'subtask') {
-          const subtaskCardIds = this.$store.getters.subtaskCardIds(toData.grandparentid, toData.parentid, toData.releaseid);
+          const subtaskCardIds = this.$store.getters.subtaskCardIds(parseInt(toData.grandparentid, 10), parseInt(toData.parentid, 10), parseInt(toData.releaseid, 10));
 
-          prevId = subtaskCardIds[evt.newIndex - 1];
+          prevId = subtaskCardIds[evt.newIndex - 1] || null;
         }
 
         data.prevId = prevId;
@@ -318,9 +316,7 @@ export default {
 /* overwrite iview style end*/
 
 .board-body {
-  /*height: 100%;*/
   padding: 4px;
-  padding-right: 0;
   border-right: 1px dotted #bbb;
 }
 

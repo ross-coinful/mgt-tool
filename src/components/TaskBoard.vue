@@ -108,6 +108,7 @@ export default {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  padding-right: 0;
 }
 
 .subtask-list {

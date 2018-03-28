@@ -236,10 +236,25 @@ export default {
       state.deleteCard = false;
       state.deleteCardSuc = true;
 
+      const newCardList = state.cardList.slice();
       const deleteIndex = state.cardList.findIndex(value => value.id === id);
-      state.cardList.splice(deleteIndex, 1);
 
-      state.boardWidths = calcBoardWidths(state.cardList);
+      const { prevId } = newCardList.find(value => value.id === id);
+
+      newCardList.splice(deleteIndex, 1);
+      const nextCard = newCardList.find(value => value.prevId === id);
+
+      if (nextCard) {
+
+        if (typeof prevId !== 'undefined') {
+          nextCard.prevId = prevId;
+        } else {
+          delete nextCard.prevId;
+        }
+      }
+
+      state.cardList = newCardList;
+      state.boardWidths = calcBoardWidths(newCardList);
     },
     deleteCardErr (state, err) {
       state.deleteCard = false;
@@ -254,7 +269,7 @@ function calcBoardWidths (list) {
 
   activityCardIds.forEach(value => {
     const taskNumber = list.filter(card => card.type === 'task' && card.parentId === value).length;
-    widths.push(taskNumber * 128 + 8);
+    widths.push(taskNumber * 128 + 9);
   });
 
   if (widths.length === 0) {
@@ -270,13 +285,9 @@ function updatePrevId (listIds, cardList) {
     const card = cardList.find(value => value.id === id);
 
     if (index === 0) {
-      console.log('id', id, card.prevId);
+
       if ('prevId' in card) {
-
-        console.log('card', card);
         delete card.prevId;
-
-        console.log('delete card', card);
       }
     } else {
       card.prevId = listIds[index - 1];
