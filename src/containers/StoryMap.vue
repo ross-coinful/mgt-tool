@@ -198,6 +198,14 @@ export default {
       const draggedId = draggedContext.element;
       const relatedId = relatedContext.element;
 
+      if (fromType !== 'subtask' && fromType !== toType) {
+        const hasChild = this.$store.getters.cardList.find(value => value.parentId === draggedId);
+
+        if (hasChild) {
+          return false;
+        }
+      }
+
       // does change board width
       if (fromType === 'task' && toType === 'subtask') {
         const parentId = this.$store.getters.card(draggedId).parentId;

@@ -112,7 +112,8 @@ export default {
     card: (state) => (id) => {
       return state.cardList.find(card => card.id === id);
     },
-    boardWidths: state => state.boardWidths
+    boardWidths: state => state.boardWidths,
+    cardList: state => state.cardList
   },
   mutations: {
     setFocusId (state, id) {
