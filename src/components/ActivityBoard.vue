@@ -7,7 +7,7 @@
 
       <draggable
         class="task-board"
-        :options="{group:'card'}"
+        :options="{group: 'card', chosenClass: 'chosen', ghostClass: 'ghost'}"
         data-type="task"
         :data-parentid="parentId"
         @end="onEnd"

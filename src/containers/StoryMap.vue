@@ -177,10 +177,9 @@ export default {
 
           prevId = taskCardIds[evt.newIndex - 1] || null;
         } else if (type === 'subtask') {
-          const grandparentid = parseInt(toData.grandparentid, 10);
           const parentid = parseInt(toData.parentid, 10);
           const releaseid = parseInt(toData.releaseid, 10);
-          const subtaskCardIds = this.$store.getters.subtaskCardIds(grandparentid, parentid, releaseid);
+          const subtaskCardIds = this.$store.getters.subtaskCardIds(parentid, releaseid);
 
           prevId = subtaskCardIds[evt.newIndex - 1] || null;
         }
@@ -397,5 +396,20 @@ export default {
 .focus {
   border-width: 2px;
   border-color: rgba(0, 0, 0, 0.2);
+}
+
+.chosen {
+  opacity: 1;
+  background-color: red;
+}
+
+.ghost {
+  background-color: #efefef;
+  border: 1px dotted #000;
+}
+
+.ghost.card p,
+.ghost.card .label-dropdown {
+  display: none;
 }
 </style>

@@ -104,9 +104,8 @@ export default {
     taskCardIds: (state) => (id) => {
       return sortList(state.cardList.filter(card => card.type === 'task' && card.parentId === id)).map(card => card.id);
     },
-    subtaskCardIds: (state) => (grandparentId, parentId, releaseId) => {
+    subtaskCardIds: (state) => (parentId, releaseId) => {
       return sortList(state.cardList.filter(card => card.type === 'subtask' &&
-        card.grandparentId === grandparentId &&
         card.parentId === parentId &&
         card.releaseId === releaseId)).map(card => card.id);
     },
@@ -185,7 +184,7 @@ export default {
       if (card.type === 'task') {
         oldListIds = getters.taskCardIds(card.parentId);
       } else if (card.type === 'subtask') {
-        oldListIds = getters.subtaskCardIds(card.grandparentId, card.parentId, card.releaseId);
+        oldListIds = getters.subtaskCardIds(card.parentId, card.releaseId);
       }
 
       let newListIds = [];
@@ -193,11 +192,10 @@ export default {
       if (_card.type === 'task') {
         newListIds = getters.taskCardIds(_card.parentId);
       } else if (_card.type === 'subtask') {
-        const grandparentId = _card.grandparentId || card.grandparentId;
         const parentId = _card.parentId || card.parentId;
         const releaseId = _card.releaseId || card.releaseId;
 
-        newListIds = getters.subtaskCardIds(grandparentId, parentId, releaseId);
+        newListIds = getters.subtaskCardIds(parentId, releaseId);
       }
 
       const newCardList = state.cardList.slice();

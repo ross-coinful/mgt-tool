@@ -35,10 +35,6 @@ export default {
       type: Number,
       required: false
     },
-    grandparentId: {
-      type: Number,
-      required: false
-    },
     releaseId: {
       type: Number,
       required: false
@@ -82,7 +78,7 @@ export default {
   },
   methods: {
     createCard (e) {
-      const { type, grandparentId, parentId, releaseId, activityNumber } = this;
+      const { type, parentId, releaseId, activityNumber } = this;
       const activityCardIds = this.$store.getters.activityCardIds;
 
       this.cardData = {
@@ -102,12 +98,11 @@ export default {
         }
         this.cardData.parentId = parentId;
       } else if (type === 'subtask') {
-        const subtaskCardIds = this.$store.getters.subtaskCardIds(grandparentId, parentId, releaseId);
+        const subtaskCardIds = this.$store.getters.subtaskCardIds(parentId, releaseId);
 
         if (subtaskCardIds.length > 0) {
           this.cardData.prevId = subtaskCardIds[subtaskCardIds.length - 1];
         }
-        this.cardData.grandparentId = grandparentId;
         this.cardData.parentId = parentId;
         this.cardData.releaseId = releaseId;
       }

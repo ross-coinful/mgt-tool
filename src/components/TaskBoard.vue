@@ -8,10 +8,9 @@
       <draggable
         v-for="id in taskCardIds"
         class="subtask-list"
-        :options="{group:'card'}"
+        :options="{group: 'card', chosenClass: 'chosen', ghostClass: 'ghost'}"
         :key="id"
         data-type="subtask"
-        :data-grandparentid="parentId"
         :data-parentid="id"
         :data-releaseid="releaseId"
         @end="onEnd"
@@ -25,7 +24,6 @@
         />
         <NewCard
           type="subtask"
-          :grandparentId="parentId"
           :parentId="id"
           :releaseId="releaseId"
         />
@@ -88,8 +86,8 @@ export default {
     }
   },
   methods: {
-    subtaskCardIds (taskId) { // 下面的函數參數為 (grandparentId, parentId, releaseId)
-      return this.$store.getters.subtaskCardIds(this.parentId, taskId, this.releaseId);
+    subtaskCardIds (taskId) {
+      return this.$store.getters.subtaskCardIds(taskId, this.releaseId);
     }
   },
   components: {
