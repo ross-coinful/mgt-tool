@@ -2,15 +2,20 @@
   <BaseCard type="subtask" :id="id">
     <p>{{ card.title }}</p>
 
-    <Dropdown class="label-dropdown" placement="bottom-start" @on-click="setProgress">
-      <a href="javascript:void(0)" :class="['label-text', progress]">{{ upperProgress }}</a>
-      <DropdownMenu slot="list">
-        <DropdownItem name="done" :disabled="progress === 'done'">Done</DropdownItem>
-        <DropdownItem name="doing" :disabled="progress === 'doing'">Doing</DropdownItem>
-        <DropdownItem name="ready" :disabled="progress === 'ready'">Ready</DropdownItem>
-        <DropdownItem name="todo" :disabled="progress === 'todo'">Todo</DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+    <div class="label-dropdown" @mouseout="closeDropdown">
+      <span class="label-text" :style="style" @click.prevent.stop="open = !open">{{ upperLabel(activeLabelTitle) }}</span>
+      <div @mouseover="openDropdown" class="dropdown" v-if="open">
+        <div
+          v-for="label in labelList"
+          :class="setClass(label.title)"
+          :data-id="label.id"
+          :key="label.id"
+          @click.prevent.stop="setProgress"
+        >
+          {{ upperLabel(label.title) }}
+        </div>
+      </div>
+    </div>
 
     <p>Points:</p>
   </BaseCard>
@@ -35,21 +40,72 @@ export default {
     BaseCard: BaseCard
   },
   computed: {
-    upperProgress () {
-      return this.progress[0].toUpperCase() + this.progress.substr(1);
+    activeLabel () {
+      const labelId = this.$store.getters.card(this.id).labelId;
+      const label = this.$store.getters.label(labelId);
+
+      return label || null;
+    },
+    activeLabelTitle () {
+      return this.activeLabel ? this.activeLabel.title : '';
+    },
+    activeLabelId () {
+      return this.activeLabel ? this.activeLabel.id : null;
     },
     card () {
       return this.$store.getters.card(this.id);
+    },
+    labelList () {
+      return this.$store.getters.labelList;
+    },
+    style () {
+      const labelId = this.$store.getters.card(this.id).labelId;
+      const label = this.$store.getters.label(labelId);
+
+      return label ? `background-color: ${label.color}` : '';
     }
   },
   data () {
     return {
-      progress: 'todo'
+      progress: '',
+      open: false
     };
   },
   methods: {
-    setProgress (progress) {
-      this.progress = progress;
+    setProgress (event) {
+      const labelId = parseInt(event.target.dataset.id, 10);
+
+      if (labelId === this.activeLabelId) {
+        return false;
+      }
+
+      this.$store.dispatch('updateCard', {
+        id: this.id,
+        data: {
+          labelId
+        },
+        command: 'label'
+      });
+      this.open = false;
+    },
+    upperLabel (title) {
+
+      if (title.length > 0) {
+        return title[0].toUpperCase() + title.substr(1);
+      }
+      return title;
+    },
+    setClass (label) {
+      return `dropdown-item ${this.activeLabelTitle === label ? 'disable' : ''}`;
+    },
+    closeDropdown () {
+      this.timer = setTimeout(() => {
+        this.open = false;
+      }, 200);
+    },
+    openDropdown () {
+      clearTimeout(this.timer);
+      this.open = true;
     }
   }
 };
@@ -59,29 +115,34 @@ export default {
 <style scoped>
 .label-dropdown {
   position: absolute;
-  z-index: 1;
   left: 3px;
   bottom: -1px;
 }
 
-.label-text {
-  color: #eee;
-  padding: 2px 5px;
-}
-
-.todo {
+.dropdown {
+  position: absolute;
+  z-index: 10;
+  color: #fff;
   background-color: #999;
 }
 
-.doing {
+.dropdown-item {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.dropdown-item:hover {
   background-color: #00abe1;
 }
 
-.ready {
-  background-color: #FF705A;
+.dropdown-item.disable {
+  color: #888;
 }
 
-.done {
-  background-color: #14c63e;
+.label-text {
+  position: relative;
+  z-index: 9;
+  color: #eee;
+  padding: 2px 5px;
 }
 </style>

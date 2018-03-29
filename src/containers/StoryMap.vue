@@ -92,6 +92,7 @@ export default {
   mounted () {
     this.$store.dispatch('getCardList');
     this.$store.dispatch('getReleaseList');
+    this.$store.dispatch('getLabelList');
   },
   components: {
     ActivityBoard,
@@ -187,7 +188,11 @@ export default {
         data.prevId = prevId;
       }
 
-      this.$store.dispatch('updateCard', {id, data});
+      this.$store.dispatch('updateCard', {
+        id,
+        data,
+        command: 'drag'
+      });
       this.addWidthIndex = null;
       this.subtractWidthIndex = null;
     },

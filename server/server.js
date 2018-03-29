@@ -18,9 +18,11 @@ app.use(bodyParser.json());
 // routes
 const card = require('./card');
 const release = require('./release');
+const label = require('./label');
 
 app.use('/card', card);
 app.use('/release', release);
+app.use('/label', label);
 
 app.get('/test', (req, res) => {
   new Test({

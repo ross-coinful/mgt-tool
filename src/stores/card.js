@@ -59,9 +59,20 @@ export default {
         commit('addCardErr', error);
       });
     },
-    updateCard ({ commit, getters }, { id, data }) {
+    updateCard ({ commit, getters }, { id, data, command }) {
       console.log('updatecard');
-      commit('updateCard', { id, data, getters });
+      // commit('updateCard', { id, data, getters });
+
+      switch (command) {
+        case 'drag':
+          commit('updateCardPos', { id, data, getters });
+          break;
+        case 'label':
+          commit('updateCardLabel', { id, data });
+          break;
+        default:
+          break;
+      }
 
       axios({
         method: 'patch',
@@ -161,7 +172,18 @@ export default {
       state.addCard = false;
       state.addCardErr = err;
     },
-    updateCard (state, { id, data, getters }) {
+    updateCardLabel (state, { id, data }) {
+      const _id = parseInt(id, 10);
+      const cardIndex = state.cardList.findIndex(value => value.id === _id);
+      const card = state.cardList[cardIndex];
+      const _card = Object.assign({}, card);
+      const newCardList = state.cardList.slice();
+
+      _card.labelId = data.labelId;
+      newCardList[cardIndex] = _card;
+      state.cardList = newCardList;
+    },
+    updateCardPos (state, { id, data, getters }) {
       state.updateCard = true;
       const _id = parseInt(id, 10);
       const cardIndex = state.cardList.findIndex(value => value.id === _id);
@@ -268,7 +290,7 @@ function calcBoardWidths (list) {
   const widths = [];
 
   activityCardIds.forEach(value => {
-    const taskNumber = list.filter(card => card.type === 'task' && card.parentId === value).length;
+    const taskNumber = list.filter(card => card.type === 'task' && card.parentId === value).length || 1; // 可能activity的task數量為0
     widths.push(taskNumber * 128 + 9);
   });
 

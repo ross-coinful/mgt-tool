@@ -7,7 +7,7 @@
 
       <draggable
         class="task-board"
-        :options="{group: 'card', chosenClass: 'chosen', ghostClass: 'ghost'}"
+        :options="dragOptions"
         data-type="task"
         :data-parentid="parentId"
         @end="onEnd"
@@ -28,6 +28,7 @@ import TaskCard from '@/components/TaskCard';
 import NewCard from '@/components/NewCard';
 import draggable from 'vuedraggable';
 import store from '../stores';
+import { dragOptions } from '../../data';
 
 export default {
   name: 'ActivityBoard',
@@ -63,7 +64,8 @@ export default {
   },
   data () {
     return {
-      addWidth: 0
+      addWidth: 0,
+      dragOptions
     };
   },
   methods: {

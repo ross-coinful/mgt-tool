@@ -8,7 +8,7 @@
       <draggable
         v-for="id in taskCardIds"
         class="subtask-list"
-        :options="{group: 'card', chosenClass: 'chosen', ghostClass: 'ghost'}"
+        :options="dragOptions"
         :key="id"
         data-type="subtask"
         :data-parentid="id"
@@ -38,6 +38,7 @@ import SubTaskCard from '@/components/SubTaskCard';
 import NewCard from '@/components/NewCard';
 import draggable from 'vuedraggable';
 import store from '../stores';
+import { dragOptions } from '../../data';
 
 export default {
   name: 'TaskBoard',
@@ -74,7 +75,8 @@ export default {
   store,
   data () {
     return {
-      show: false
+      show: false,
+      dragOptions
     };
   },
   computed: {

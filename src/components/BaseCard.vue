@@ -1,9 +1,14 @@
 <template>
-  <div :class="setClass" :data-id="id" @click="focusCard" @mouseover="show = true" @mouseout="show = false">
-    <slot></slot>
+  <div :class="setClass" :data-id="id" @mouseover="show = true" @mouseout="show = false">
+    <div style="height: 100%" @click="focusCard">
+      <slot ></slot>
+    </div>
 
-    <div v-show="show" class="card-toolbar" @click="deleteCard">
-      <Icon type="trash-a" size="16"></Icon>
+    <div v-show="show" class="card-toolbar">
+      <span @click="deleteCard">
+        <Icon type="trash-a" size="16"></Icon>
+      </span>
+
     </div>
   </div>
 </template>
