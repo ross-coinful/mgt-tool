@@ -119,6 +119,7 @@ export default {
         data: this.cardData,
         callback: function () {
           this.isCreate = false;
+          this.title = '';
         }.bind(this)
       });
     }

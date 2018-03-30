@@ -43,7 +43,7 @@ export default {
       const { type } = data;
 
       if (type === 'subtask') {
-        data.label = 'todo';
+        data.labelId = 0;
       }
 
       axios({
@@ -60,8 +60,6 @@ export default {
       });
     },
     updateCard ({ commit, getters }, { id, data, command }) {
-      console.log('updatecard');
-      // commit('updateCard', { id, data, getters });
 
       switch (command) {
         case 'drag':
@@ -69,40 +67,72 @@ export default {
           break;
         case 'label':
           commit('updateCardLabel', { id, data });
+          data.id = id;
+
+          axios({
+            method: 'patch',
+            url: `${localServer}/card`,
+            data: [data]
+          })
+          .then((response) => {
+            commit('updateCardSuc');
+          }, (error) => {
+            commit('updateCardErr', error);
+          });
           break;
         default:
           break;
       }
-
-      axios({
-        method: 'patch',
-        url: `${localServer}/card/${id}`,
-        data
-      })
-      .then((response) => {
-        commit('updateCardSuc');
-      }, (error) => {
-        commit('updateCardErr', error);
-      });
     },
     deleteCard ({ commit, state, getters }, id) {
       const card = getters.card(id);
       const { type } = card;
-      const typeIndex = `${type}Index`;
-      const index = card[typeIndex];
+      const nextId = getters.nextCardId(id);
+      let ids = [id];
 
-      const child = state.cardList.filter(value => value.type !== type && value[typeIndex] === index);
+      if (type === 'activity') {
+        const taskChild = getters.childCardIds(id);
+        ids = ids.concat(taskChild);
+        console.log('herer', taskChild);
 
-      console.log('child', type, typeIndex, index, child, child.length);
-      // const hasChild = ;
+        // add subtask child ids
+        taskChild.forEach(taskId => {
+          ids = ids.concat(getters.childCardIds(taskId));
+        });
+      } else if (type === 'task') {
+        const child = getters.childCardIds(id);
+        ids = ids.concat(child);
+      }
+
       commit('deleteCard');
 
       axios({
         method: 'delete',
-        url: `${localServer}/card/${id}`
+        url: `${localServer}/card`,
+        data: ids
       })
       .then((response) => {
-        commit('deleteCardSuc', id);
+
+        if (nextId !== null) {
+          const prevId = 'prevId' in card ? card.prevId : null;
+
+          commit('deleteCardSuc', {ids, nextId, prevId});
+
+          axios({
+            method: 'patch',
+            url: `${localServer}/card`,
+            data: [{
+              id: nextId,
+              prevId
+            }]
+          }).then((res) => {
+            console.log('updateCardPrevId suc');
+          }, (err) => {
+            console.log('updateCardPrevId fail', err);
+          });
+        } else {
+          commit('deleteCardSuc', {ids});
+        }
       }, (error) => {
         commit('deleteCardErr', error);
       });
@@ -122,6 +152,13 @@ export default {
     },
     card: (state) => (id) => {
       return state.cardList.find(card => card.id === id);
+    },
+    childCardIds: (state) => (parentId) => {
+      return state.cardList.filter(value => value.parentId === parentId).map(value => value.id);
+    },
+    nextCardId: (state) => (id) => {
+      const nextCard = state.cardList.find(value => value.prevId === id);
+      return nextCard ? nextCard.id : null;
     },
     boardWidths: state => state.boardWidths,
     cardList: state => state.cardList
@@ -165,8 +202,11 @@ export default {
     addCardSuc (state, card) {
       state.addCard = false;
       state.addCardSuc = true;
-      // state.cardList = state.cardList.slice().push(card);
-      state.cardList.push(card);
+
+      const newCardList = state.cardList.slice();
+      newCardList.push(card);
+
+      state.cardList = newCardList;
     },
     addCardErr (state, err) {
       state.addCard = false;
@@ -189,6 +229,10 @@ export default {
       const cardIndex = state.cardList.findIndex(value => value.id === _id);
       const card = state.cardList[cardIndex];
       const _card = Object.assign({}, card);
+      const updatedData = {
+        id: _id
+      };
+      let updatedDatas = [];
 
       Object.keys(data).forEach(key => {
 
@@ -196,11 +240,15 @@ export default {
 
           if (key in _card) {
             delete _card[key];
+            updatedData[key] = null;
           }
         } else {
           _card[key] = data[key];
+          updatedData[key] = data[key];
         }
       });
+
+      updatedDatas.push(updatedData);
 
       let oldListIds = [];
 
@@ -227,7 +275,7 @@ export default {
       if (newListIds.indexOf(_id) === -1) { // does leave origin list, true = yes
         oldListIds.splice(oldListIds.indexOf(_id), 1); // 把自己移除
 
-        updatePrevId(oldListIds, newCardList);
+        updatedDatas = updatedDatas.concat(updatePrevId(oldListIds, newCardList));
       } else {
         newListIds.splice(newListIds.indexOf(_id), 1); // 把自己移除
       }
@@ -235,13 +283,26 @@ export default {
       // 在新位子加入自己
       const newIndex = 'prevId' in data ? newListIds.findIndex(id => id === data.prevId) + 1 : 0;
       newListIds.splice(newIndex, 0, _id);
-      updatePrevId(newListIds, newCardList);
+      updatedDatas = updatedDatas.concat(updatePrevId(newListIds, newCardList));
 
       state.cardList = newCardList;
 
       if (card.type === 'task' || _card.type === 'task') {
         state.boardWidths = calcBoardWidths(newCardList);
       }
+
+      console.log('updatedDatas', updatedDatas);
+
+      axios({
+        method: 'patch',
+        url: `${localServer}/card`,
+        data: updatedDatas
+      })
+      .then((response) => {
+        console.log('updateCardPos suc');
+      }, (error) => {
+        console.log('updateCardPos', error);
+      });
     },
     updateCardSuc (state) {
       state.updateCard = false;
@@ -254,25 +315,29 @@ export default {
     deleteCard (state) {
       state.deleteCard = true;
     },
-    deleteCardSuc (state, id) {
+    deleteCardSuc (state, {ids, nextId = null, prevId = null}) {
       state.deleteCard = false;
       state.deleteCardSuc = true;
 
       const newCardList = state.cardList.slice();
-      const deleteIndex = state.cardList.findIndex(value => value.id === id);
 
-      const { prevId } = newCardList.find(value => value.id === id);
+      ids.forEach(id => {
+        const deleteIndex = state.cardList.findIndex(value => value.id === id);
+        newCardList.splice(deleteIndex, 1);
+      });
 
-      newCardList.splice(deleteIndex, 1);
-      const nextCard = newCardList.find(value => value.prevId === id);
+      if (nextId !== null) {
+        const nextCardIndex = newCardList.findIndex(value => value.id === nextId);
+        const nextCard = newCardList[nextCardIndex];
+        const _card = Object.assign({}, nextCard);
 
-      if (nextCard) {
-
-        if (typeof prevId !== 'undefined') {
-          nextCard.prevId = prevId;
-        } else {
-          delete nextCard.prevId;
+        if (prevId !== null) {
+          _card.prevId = prevId;
+        } else if ('prevId' in _card) {
+          delete _card.prevId;
         }
+
+        newCardList[nextCardIndex] = _card;
       }
 
       state.cardList = newCardList;
@@ -302,7 +367,8 @@ function calcBoardWidths (list) {
 }
 
 function updatePrevId (listIds, cardList) {
-  console.log('listIds', listIds);
+  const updatedDatas = [];
+
   listIds.forEach((id, index) => {
     const card = cardList.find(value => value.id === id);
 
@@ -310,9 +376,27 @@ function updatePrevId (listIds, cardList) {
 
       if ('prevId' in card) {
         delete card.prevId;
+
+        updatedDatas.push({
+          id,
+          prevId: null
+        });
       }
     } else {
-      card.prevId = listIds[index - 1];
+      const newPrevId = listIds[index - 1];
+
+      if (newPrevId !== card.prevId) {
+        card.prevId = newPrevId;
+
+        updatedDatas.push({
+          id,
+          prevId: newPrevId
+        });
+      }
     }
   });
+
+  console.log('in function', updatedDatas);
+
+  return updatedDatas;
 }

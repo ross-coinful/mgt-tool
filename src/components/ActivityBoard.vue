@@ -87,6 +87,7 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
+  height: 86px;
 }
 
 .add-card {

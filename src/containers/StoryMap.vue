@@ -188,6 +188,10 @@ export default {
         data.prevId = prevId;
       }
 
+      if (fromData.type === 'subtask' && toData.type !== 'subtask') {
+        data.labelId = null;
+      }
+
       this.$store.dispatch('updateCard', {
         id,
         data,
