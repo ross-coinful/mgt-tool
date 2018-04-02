@@ -65,22 +65,20 @@ export default {
         case 'drag':
           commit('updateCardPos', { id, data, getters });
           break;
-        case 'label':
-          commit('updateCardLabel', { id, data });
-          data.id = id;
+        default:
+          commit('updateCard');
+          const updateData = Object.assign({id}, data);
 
           axios({
             method: 'patch',
             url: `${localServer}/card`,
-            data: [data]
+            data: [updateData]
           })
           .then((response) => {
-            commit('updateCardSuc');
+            commit('updateCardSuc', { id, data });
           }, (error) => {
             commit('updateCardErr', error);
           });
-          break;
-        default:
           break;
       }
     },
@@ -212,14 +210,17 @@ export default {
       state.addCard = false;
       state.addCardErr = err;
     },
-    updateCardLabel (state, { id, data }) {
+    updateCard (state, { id, data }) {
       const _id = parseInt(id, 10);
       const cardIndex = state.cardList.findIndex(value => value.id === _id);
       const card = state.cardList[cardIndex];
       const _card = Object.assign({}, card);
       const newCardList = state.cardList.slice();
 
-      _card.labelId = data.labelId;
+      Object.keys(data).forEach(key => {
+        _card[key] = data[key];
+      });
+
       newCardList[cardIndex] = _card;
       state.cardList = newCardList;
     },

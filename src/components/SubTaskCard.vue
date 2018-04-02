@@ -83,8 +83,7 @@ export default {
         id: this.id,
         data: {
           labelId
-        },
-        command: 'label'
+        }
       });
       this.open = false;
     },
