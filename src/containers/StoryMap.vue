@@ -221,17 +221,14 @@ export default {
       const draggedId = draggedContext.element;
 
       /* handle effect start */
-
       if (fromType === 'task') {
         this.draggedId = draggedId;
       }
 
       if (toType === 'task') {
-        // console.log('reset reset', toParentId, 'newIndex', draggedContext.futureIndex);
         this.fillParentId = toParentId;
         this.fillIndex = draggedContext.futureIndex;
       }
-
       /* handle effect end */
 
       if (fromType !== 'subtask' && fromType !== toType) {
@@ -387,6 +384,18 @@ export default {
   background-color: #aed9e9;
   border-color: #8fcbe3;
   color: #274e5b;
+}
+
+.activity-card .empty-title {
+  color: #5eb3d3;
+}
+
+.task-card .empty-title {
+  color: #c9b50d;
+}
+
+.subtask-card .empty-title {
+  color: #cecece;
 }
 
 .focus {

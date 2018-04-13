@@ -1,6 +1,7 @@
 <template>
   <BaseCard type="subtask" :id="id">
-    <p>{{ card.title }}</p>
+    <p v-if="card.title">{{ card.title }}</p>
+    <p v-else class="empty-title">{{ emptyCard }}</p>
 
     <div class="label-dropdown" @mouseout="closeDropdown">
       <span class="label-text" :style="style" @click.prevent.stop="open = !open">{{ upperLabel(activeLabelTitle) }}</span>
@@ -23,6 +24,7 @@
 
 <script>
 import BaseCard from '@/components/BaseCard';
+import { emptyCard } from '../../data';
 
 export default {
   name: 'SubTaskCard',
@@ -68,7 +70,8 @@ export default {
   data () {
     return {
       progress: '',
-      open: false
+      open: false,
+      emptyCard
     };
   },
   methods: {

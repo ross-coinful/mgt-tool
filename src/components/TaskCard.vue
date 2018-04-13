@@ -1,19 +1,26 @@
 <template>
   <BaseCard type="task" :id="id">
-    <p>{{ card.title }}</p>
+    <p v-if="card.title">{{ card.title }}</p>
+    <p v-else class="empty-title">{{ emptyCard }}</p>
   </BaseCard>
 </template>
 
 <script>
 import BaseCard from '@/components/BaseCard';
+import { emptyCard } from '../../data';
 
 export default {
   name: 'TaskCard',
   props: {
     id: {
       type: Number,
-      require: true
+      required: true
     }
+  },
+  data () {
+    return {
+      emptyCard
+    };
   },
   computed: {
     card () {

@@ -1,12 +1,13 @@
 <template>
   <BaseCard type="activity" :id="id">
-    <p>{{ card.title }}</p>
+    <p v-if="card.title">{{ card.title }}</p>
+    <p v-else class="empty-title">{{ emptyCard }}</p>
   </BaseCard>
 </template>
 
 <script>
 import BaseCard from '@/components/BaseCard';
-import store from '../stores';
+import { emptyCard } from '../../data';
 
 export default {
   name: 'ActivityCard',
@@ -16,7 +17,11 @@ export default {
       require: true
     }
   },
-  store,
+  data () {
+    return {
+      emptyCard
+    };
+  },
   components: {
     BaseCard: BaseCard
   },
