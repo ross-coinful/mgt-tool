@@ -3,13 +3,6 @@
     <div style="height: 100%" @click="focusCard">
       <slot ></slot>
     </div>
-
-    <div v-show="show" class="card-toolbar">
-      <span @click="deleteCard">
-        <Icon type="trash-a" size="16"></Icon>
-      </span>
-
-    </div>
   </div>
 </template>
 
@@ -56,7 +49,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.card-toolbar {
+/*.card-toolbar {
   position: absolute;
   z-index: 0;
   bottom: 0;
@@ -66,8 +59,8 @@ export default {
   width: 100%;
   height: 22px;
   padding-right: 3px;
-  padding-top: 4px; /* 垂直置中 */
+  padding-top: 4px; 垂直置中
   background-color: #eee;
   opacity: 0.5;
-}
+}*/
 </style>

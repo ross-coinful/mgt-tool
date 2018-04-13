@@ -21,7 +21,7 @@
       <span class="link-btn-separator">&nbsp;|&nbsp;</span>
       <Button type="text" v-show="isSubtask">add attachment</Button>
       <span class="link-btn-separator" v-show="isSubtask">&nbsp;|&nbsp;</span>
-      <Button type="text">delete card</Button>
+      <Button type="text" @click="showConfirmation">delete card</Button>
     </div>
   </Modal>
 </template>
@@ -32,18 +32,15 @@ import store from '../stores';
 export default {
   name: 'CardModal',
   store,
-  props: {
-    id: {
-      type: Number,
-      require: true
-    }
-  },
   computed: {
     getCardDetailSuc () {
       return this.$store.state.cardDetail.getCardDetailSuc;
     },
     updateCardSuc () {
       return this.$store.state.card.updateCardSuc;
+    },
+    card () {
+      return this.$store.getters.card(this.$store.state.card.focusId);
     },
     cardTitle: {
       get () {
@@ -116,13 +113,29 @@ export default {
     },
     visiableChange (isOpen) {
       const { dispatch, state } = this.$store;
-      console.log('visiable change', isOpen);
 
       if (isOpen) {
         dispatch('getCardDetail', state.card.focusId);
       } else {
         dispatch('closeCard');
       }
+    },
+    showConfirmation () {
+      const { dispatch } = this.$store;
+      const { type, id } = this.card;
+      const childCount = type !== 'subtask' ? this.$store.getters.childCardIds(id).length : 0;
+      const title = `<p>Are you sure you want to delete the ${this.title} card?</p>`;
+      const warning = `<p>Its <span style="color: red">${childCount} children</span> will also be deleted!</p>`;
+      const content = childCount ? title + warning : title;
+
+      this.$Modal.confirm({
+        title: 'Confirmation',
+        content,
+        onOk: () => {
+          dispatch('deleteCard', id);
+          dispatch('closeCard');
+        }
+      });
     }
   },
   directives: {
