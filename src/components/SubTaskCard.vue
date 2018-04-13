@@ -80,10 +80,8 @@ export default {
       }
 
       this.$store.dispatch('updateCard', {
-        id: this.id,
-        data: {
-          labelId
-        }
+        id: parseInt(this.id, 10),
+        labelId
       });
       this.open = false;
     },

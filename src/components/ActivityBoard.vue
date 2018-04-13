@@ -10,6 +10,7 @@
         :options="dragOptions"
         data-type="task"
         :data-parentid="parentId"
+        :data-name="listName"
         @end="onEnd"
         :list="taskCardIds"
         :move="onMove"
@@ -54,6 +55,9 @@ export default {
   computed: {
     taskCardIds () {
       return this.$store.getters.taskCardIds(this.parentId);
+    },
+    listName () {
+      return `task-list-${this.parentId}`;
     }
   },
   components: {

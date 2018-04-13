@@ -4,31 +4,35 @@
       <span v-if="index === 0">{{ releaseTitle }}</span>
     </div>
     <div class="board-body">
+      <div v-for="(id, index) in taskCardIds" class="subtask-list" :key="id">
+        <div v-if="displaySpace(index)" style="width: 128px;height: 100%">
 
-      <draggable
-        v-for="id in taskCardIds"
-        class="subtask-list"
-        :options="dragOptions"
-        :key="id"
-        data-type="subtask"
-        :data-parentid="id"
-        :data-releaseid="releaseId"
-        @end="onEnd"
-        :list="subtaskCardIds(id)"
-        :move="onMove"
-      >
-        <SubTaskCard
-          v-for="id in subtaskCardIds(id)"
-          :id="id"
-          :key="id"
-        />
-        <NewCard
-          type="subtask"
-          :parentId="id"
-          :releaseId="releaseId"
-        />
-      </draggable>
-
+        </div>
+        <draggable
+          v-else
+          :options="dragOptions"
+          data-type="subtask"
+          :data-parentid="id"
+          :data-releaseid="releaseId"
+          :data-name="listName(id)"
+          @end="onEnd"
+          :list="subtaskCardIds(id)"
+          :move="onMove"
+        >
+          <SubTaskCard
+            v-if="display(id)"
+            v-for="subtaskId in subtaskCardIds(id)"
+            :id="subtaskId"
+            :key="subtaskId"
+          />
+          <NewCard
+            v-if="display(id)"
+            type="subtask"
+            :parentId="id"
+            :releaseId="releaseId"
+          />
+        </draggable>
+      </div>
     </div>
   </div>
 </template>
@@ -59,6 +63,16 @@ export default {
       type: String,
       required: true
     },
+    draggedId: {
+      type: Number
+    },
+    fillSpace: {
+      type: Boolean,
+      required: true
+    },
+    fillIndex: {
+      type: Number
+    },
     index: {
       type: Number,
       required: true
@@ -84,12 +98,26 @@ export default {
       return 'width: ' + this.width + 'px';
     },
     taskCardIds () {
-      return this.$store.getters.taskCardIds(this.parentId);
+      const taskCardIds = this.$store.getters.taskCardIds(this.parentId);
+
+      if (this.fillSpace && this.fillIndex !== null && this.fillIndex < taskCardIds.length) {
+        taskCardIds.splice(this.fillIndex, 0, null);
+      }
+      return taskCardIds;
     }
   },
   methods: {
     subtaskCardIds (taskId) {
       return this.$store.getters.subtaskCardIds(taskId, this.releaseId);
+    },
+    listName (id) {
+      return `subtask-list-${id}-${this.releaseId}`;
+    },
+    display (id) {
+      return id !== this.draggedId;
+    },
+    displaySpace (index) {
+      return this.fillSpace && this.fillIndex === index;
     }
   },
   components: {
@@ -119,6 +147,9 @@ export default {
   background-size: 3px 1px;
   background-repeat: repeat-x;*/
 /*}*/
+.hidden {
+  display: none;
+}
 
 .task-board {
   display: flex;

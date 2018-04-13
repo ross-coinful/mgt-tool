@@ -4,57 +4,44 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Card = mongoose.model('Card');
 
-const { cardList } = require('./mockData');
-let id = 100;
-
-// function getNextSequence (name, counters) {
-//   var ret = counters.findAndModify(
-//     {
-//       query: { _id: name },
-//       update: { $inc: { seq: 1 } },
-//       new: true
-//     }
-//   );
-
-//   return ret.seq;
-// }
-
 router.get('/list', (req, res) => {
   Card.find({}, {'_id': false, '_v': false}).exec((err, cards) => {
     if (err) {
       console.log('Get card list: Fail.', err);
-      return res.status(400).end();;
+      return res.status(400).end();
     }
 
-    const _cards = cards.map((value) => {
-      delete value._id;
-      delete value._v;
-      return value;
-    });
-
     console.log('Get card list: Ok.');
-    return res.status(200).json(_cards).end();
+    return res.status(200).json(cards).end();
+  });
+});
+
+router.get('/:id', (req, res) => {
+  Card.findOne({ id: req.params.id }, {'_id': false, '_v': false}).exec((err, card) => {
+    if (err) {
+      console.log('Get card detail: Fail.', err);
+      return res.status(400).end();
+    }
+
+    console.log('Get card detail: Ok.');
+    return res.status(200).json(card).end();
   });
 });
 
 router.post('/', (req, res) => {
-  Card.find().exec((err, cards) => {
-
-    console.log('cards', cards.length);
-
+  Card.find().exec((error, cards) => {
+    console.log('cards', cards.length, error);
     const count = cards.length;
     let id = 0;
 
     if (count !== 0) {
       id = cards[count - 1].id + 1;
     }
-
     req.body.id = id;
-
     new Card(req.body).save((err) => {
       if (err) {
         console.log('Create a new card: Fail to save to DB.', err);
-        return res.status(400).end();;
+        return res.status(400).end();
       }
       console.log('Create a new card: Save to DB.');
       return res.status(200).json(id).end();
@@ -66,7 +53,7 @@ router.delete('/', (req, res) => {
   Card.remove({id: { $in: req.body }}).exec((err, cards) => {
     if (err) {
       console.log('Delete card: Fail.', err);
-      return res.status(400).end();;
+      return res.status(400).end();
     }
     console.log('Delete card: Ok.');
     return res.status(200).end();

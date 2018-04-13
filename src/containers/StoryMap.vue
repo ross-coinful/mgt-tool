@@ -26,6 +26,9 @@
           :width="calcWidth(width, index)"
           :index="index"
           :key="`width-${index}`"
+          :draggedId="draggedId"
+          :fillSpace="checkFillSpace(activityCardIds[index])"
+          :fillIndex="fillIndex"
           :onEnd="onEnd"
           :onMove="onMove">
         </TaskBoard>
@@ -39,41 +42,17 @@
       </div>
     </div>
 
-    <Modal
-      v-model="$store.state.card.isOpen"
-      title="Card"
-      ok-text="add comment"
-      @on-visible-change="clearStatus">
-      <div class="title">
-        <p class="display" v-if="!isEditTitle" @click="toggleEditTitle">{{ cardTitle }} Click to add title.</p>
-        <input class="input" v-else v-model="cardTitle" type="text" @blur="toggleEditTitle" v-focus="isFocusTitle" />
-      </div>
-
-      <div class="detail">
-        <p class="display" v-if="!isEditDetail" @click="toggleEditDetail">{{ cardDetail }} Click to add details.</p>
-        <textarea class="input" v-else v-model="cardDetail" @blur="toggleEditDetail" v-focus="isFocusDetail"></textarea>
-      </div>
-
-      <div slot="footer">
-        <Button type="text">add comment</Button>
-        <span class="link-btn-separator">&nbsp;|&nbsp;</span>
-        <Button type="text">add attachment</Button>
-        <span class="link-btn-separator">&nbsp;|&nbsp;</span>
-        <Button type="text" v-show="isSubtask">add attachment</Button>
-        <span class="link-btn-separator" v-show="isSubtask">&nbsp;|&nbsp;</span>
-        <Button type="text">delete card</Button>
-      </div>
-    </Modal>
-
+    <CardModal />
   </div>
-
 </template>
 
 <script>
 import ActivityBoard from '@/components/ActivityBoard';
 import TaskBoard from '@/components/TaskBoard';
 import NewCard from '@/components/NewCard';
+import CardModal from '@/components/CardModal';
 import store from '../stores';
+import { defaultWidth } from '../../data';
 import { mapGetters } from 'vuex';
 
 export default {
@@ -97,115 +76,163 @@ export default {
   components: {
     ActivityBoard,
     TaskBoard,
-    NewCard
+    NewCard,
+    CardModal
   },
   data () {
     return {
-      isEditTitle: false,
-      isFocusTitle: false,
-      isEditDetail: false,
-      isFocusDetail: false,
-      cardTitle: this.title,
-      cardDetail: this.detail,
-      isSubtask: false,
       addWidthIndex: null,
-      subtractWidthIndex: null
+      subtractWidthIndex: null,
+      draggedId: null,
+      fillParentId: null,
+      fillIndex: null
     };
   },
   methods: {
-    taskCardIds (activityIndex) {
-      return this.$store.getters.taskCardIds(activityIndex);
+    taskCardIds (parentId) {
+      return this.$store.getters.taskCardIds(parentId);
     },
-    toggleEditTitle () {
-      this.toggleEdit('Title');
-    },
-    toggleEditDetail () {
-      this.toggleEdit('Detail');
-    },
-    toggleEdit (type) {
-
-      if (this[`isEdit${type}`]) {
-        this[`isFocus${type}`] = false;
-        this[`isEdit${type}`] = false;
-      } else {
-        this[`isFocus${type}`] = true;
-        this[`isEdit${type}`] = true;
-      }
-    },
-    clearStatus (visible) {
-
-      if (visible) {
-        // getCardContent();
-      } else {
-        // this.isFocus = false;
-        // this.isEdit = false;
-      }
+    checkFillSpace (parentId) {
+      return parentId === this.fillParentId;
     },
     onEnd (evt) {
-      const id = evt.item.dataset.id;
+      const id = parseInt(evt.item.dataset.id, 10);
       const fromData = evt.from.dataset;
       const toData = evt.to.dataset;
-      const data = {};
 
-      const fromKeys = Object.keys(fromData);
-      const toKeys = Object.keys(toData);
-      const allKey = fromKeys.length > toKeys.length ? fromKeys : toKeys;
-
-      // 不含 prevId, 所以不會送 prevId = null 資料給server, 在store裡的檢查要小心
-      allKey.forEach(key => {
-
-        if (fromData[key] !== toData[key]) {
-          const idIndex = key.indexOf('id');
-          const _key = idIndex !== -1 ? key.slice(0, idIndex) + 'Id' : key;
-          let toValue = toData[key];
-
-          if (typeof toValue === 'undefined') {
-            toValue = null;
-          } else if (idIndex !== -1 && typeof toData[key] === 'string') {
-            toValue = parseInt(toValue, 10);
-          }
-
-          data[_key] = toValue;
-        }
-      });
-
-      if (evt.newIndex !== 0) {
-        const { type } = toData;
-        let prevId = null;
-
-        if (type === 'task') {
-          const taskCardIds = this.$store.getters.taskCardIds(parseInt(toData.parentid, 10));
-
-          prevId = taskCardIds[evt.newIndex - 1] || null;
-        } else if (type === 'subtask') {
-          const parentid = parseInt(toData.parentid, 10);
-          const releaseid = parseInt(toData.releaseid, 10);
-          const subtaskCardIds = this.$store.getters.subtaskCardIds(parentid, releaseid);
-
-          prevId = subtaskCardIds[evt.newIndex - 1] || null;
-        }
-
-        data.prevId = prevId;
-      }
-
-      if (fromData.type === 'subtask' && toData.type !== 'subtask') {
-        data.labelId = null;
-      }
-
-      this.$store.dispatch('updateCard', {
-        id,
-        data,
-        command: 'drag'
-      });
       this.addWidthIndex = null;
       this.subtractWidthIndex = null;
+      this.draggedId = null;
+      this.fillParentId = null;
+      this.fillIndex = null;
+
+      if (fromData.name === toData.name) {
+
+        if (evt.oldIndex === evt.newIndex) {
+          return false;
+        } else if (toData.type === 'task' && evt.newIndex === this.taskCardIds(parseInt(toData.parentid, 10)).length) {
+          // 如果拖到list的極致左右邊緣index會偵測為list的長度, 這會導致後面計算錯誤
+          return false;
+        }
+      }
+
+      const fromType = fromData.type;
+      const toType = toData.type;
+      const { taskCardIds, subtaskCardIds, cardList } = this.$store.getters;
+      const data = {
+        id
+      };
+
+      switch (toType) {
+        case 'task': {
+          const parentid = parseInt(toData.parentid, 10);
+
+          data.parentId = parentid;
+          data.type = 'task';
+
+          if (fromType === 'subtask') {
+            data.releaseId = null;
+            data.labelId = null;
+          }
+          break;
+        }
+        case 'subtask': {
+          const parentid = parseInt(toData.parentid, 10);
+          const releaseid = parseInt(toData.releaseid, 10);
+
+          data.parentId = parentid;
+          data.releaseId = releaseid;
+
+          if (fromType !== 'subtask') {
+            data.labelId = 0;
+            data.type = 'subtask';
+          }
+          break;
+        }
+        default:
+          break;
+      }
+
+      const newCardList = cardList.slice();
+      const oldCard = newCardList.find(card => card.id === id);
+      const newCard = Object.assign({}, oldCard);
+      let updatedDatas = [data];
+
+      // 更新拖拉的card的資料
+      Object.keys(data).forEach(key => {
+
+        if (data[key] === null) {
+
+          if (key in newCard) {
+            delete newCard[key];
+          }
+        } else {
+          newCard[key] = data[key];
+        }
+      });
+
+      let newListIds = [];
+
+      if (newCard.type === 'task') {
+        newListIds = taskCardIds(newCard.parentId);
+
+      } else if (newCard.type === 'subtask') {
+        newListIds = subtaskCardIds(newCard.parentId, newCard.releaseId);
+      }
+
+      const newNextCardId = newListIds[evt.newIndex] || null;
+      const oldNextCard = newCardList.find(card => card.prevId === id);
+
+      if (oldNextCard) {
+        updatedDatas.push({
+          id: oldNextCard.id,
+          prevId: 'prevId' in oldCard ? oldCard.prevId : null
+        });
+      }
+
+      if (newNextCardId === null) {
+        data.prevId = newListIds[newListIds.length - 1] || null;
+      } else {
+        const newNextCard = newCardList.find(card => card.id === newNextCardId);
+
+        // 表示仍在原本的list且僅跟後面一張card互換位子而已
+        if (newNextCard.prevId === id && fromData.name === toData.name) {
+          data.prevId = newNextCardId;
+        } else {
+          data.prevId = newNextCard.prevId || null;
+
+          updatedDatas.push({
+            id: newNextCardId,
+            prevId: id
+          });
+        }
+      }
+
+      this.$store.dispatch('updateCardPos', updatedDatas);
     },
     onMove (evt) {
-      const { draggedContext, relatedContext, from, to } = evt;
-      const fromType = from.dataset.type;
-      const toType = to.dataset.type;
+      const { draggedContext, from, to } = evt;
+      const fromData = from.dataset;
+      const toData = to.dataset;
+      const fromType = fromData.type;
+      const toType = toData.type;
+      const fromParentId = parseInt(fromData.parentid, 10);
+      const toParentId = parseInt(toData.parentid, 10);
       const draggedId = draggedContext.element;
-      const relatedId = relatedContext.element;
+
+      /* handle effect start */
+
+      if (fromType === 'task') {
+        this.draggedId = draggedId;
+      }
+
+      if (toType === 'task') {
+        // console.log('reset reset', toParentId, 'newIndex', draggedContext.futureIndex);
+        this.fillParentId = toParentId;
+        this.fillIndex = draggedContext.futureIndex;
+      }
+
+      /* handle effect end */
 
       if (fromType !== 'subtask' && fromType !== toType) {
         const hasChild = this.$store.getters.cardList.find(value => value.parentId === draggedId);
@@ -217,26 +244,36 @@ export default {
 
       // does change board width
       if (fromType === 'task' && toType === 'subtask') {
-        const parentId = this.$store.getters.card(draggedId).parentId;
-        const activityIndex = this.activityCardIds.indexOf(parentId);
+        const activityIndex = this.activityCardIds.indexOf(fromParentId);
 
         this.addWidthIndex = null;
         this.subtractWidthIndex = activityIndex;
-      } else if (fromType === 'task' && toType === 'task' && typeof relatedId !== 'undefined') {
-        const draggedParentId = this.$store.getters.card(draggedId).parentId;
-        const relatedParentId = this.$store.getters.card(relatedId).parentId;
-        const draggedActivityIndex = this.activityCardIds.indexOf(draggedParentId);
-        const relatedActivityIndex = this.activityCardIds.indexOf(relatedParentId);
+      } else if (fromType === 'task' && toType === 'task') {
+        const draggedActivityIndex = this.activityCardIds.indexOf(fromParentId);
+        const relatedActivityIndex = this.activityCardIds.indexOf(toParentId);
 
         if (draggedActivityIndex !== relatedActivityIndex) {
-          this.addWidthIndex = relatedActivityIndex;
-          this.subtractWidthIndex = draggedActivityIndex;
-        }
-      } else if (fromType === 'subtask' && toType === 'task' && typeof relatedId !== 'undefined') {
-        const parentId = this.$store.getters.card(relatedId).parentId;
-        const activityIndex = this.activityCardIds.indexOf(parentId);
 
-        this.addWidthIndex = activityIndex;
+          if (this.taskCardIds(parseInt(toParentId, 10)).length) {
+            this.addWidthIndex = relatedActivityIndex;
+          } else {
+            this.addWidthIndex = null;
+          }
+
+          this.subtractWidthIndex = draggedActivityIndex;
+        } else {
+          this.addWidthIndex = null;
+          this.subtractWidthIndex = null;
+        }
+      } else if (fromType === 'subtask' && toType === 'task') {
+        const activityIndex = this.activityCardIds.indexOf(toParentId);
+
+        if (this.taskCardIds(parseInt(toParentId, 10)).length) {
+          this.addWidthIndex = activityIndex;
+        } else {
+          this.addWidthIndex = null;
+        }
+
         this.subtractWidthIndex = null;
       } else {
         this.addWidthIndex = null;
@@ -253,14 +290,7 @@ export default {
       } else if (index === this.subtractWidthIndex) {
         _width -= 128;
       }
-      return _width;
-    }
-  },
-  directives: {
-    focus: {
-      inserted: function (el) {
-        el.focus();
-      }
+      return Math.max(_width, defaultWidth);
     }
   }
 };
@@ -287,61 +317,10 @@ export default {
   flex: 1;
   border-right: 0;
 }
-
-.display {
-  cursor: pointer;
-}
-
-.input {
-  width: 100%;
-  height: 100%;
-  border: 1px dotted #aaa;
-  outline: 0;
-}
-
-.title {
-  height: 30px;
-  margin-bottom: 20px;
-}
-
-.title .display {
-  color: #282828;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.detail,
-.detail .input {
-  min-height: 160px;
-}
-
-.detail .display {
-  color: #282828;
-  font-size: 14px;
-}
-
-/* 因為 type為activity 的 NewCard 並沒有被 board-body 包裹住 所以需要加上 padding */
-/*.new-card {
-  padding: 4px;
-}*/
 </style>
 
 <style>
 /* overwrite iview style start*/
-/*.ivu-card {
-  width: 120px;
-  height: 78px;
-  padding: 3px;
-  margin: 4px;
-  border-radius: 0;
-  font-size: 12px;
-  text-align: left;
-}
-
-.ivu-card-body {
-  padding: 0;
-}*/
-
 .ivu-modal-header {
   display: flex;
   align-items: center;

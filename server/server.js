@@ -34,6 +34,7 @@ const { Schema } = mongoose;
 const Card = new Schema({
     id: Number,
     title: String,
+    detail: String,
     type: String,
     prevId: Number,
     parentId: Number,
