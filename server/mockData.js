@@ -37,15 +37,9 @@ const cardList = [
 
 const releaseList = [
   {'id': 3, 'title': 'release-3'},
-  {'id': 1, 'title': 'release-1', prevId: 3},
-  {'id': 2, 'title': 'release-2', prevId: 1}
+  {'id': 1, 'title': 'release-1'},
+  {'id': 2, 'title': 'release-2'}
 ];
-
-const defaultRelease = [{
-  id: 0,
-  title: 'card',
-  order: 0
-}];
 
 const labelList = [
   {'id': 0, 'title': 'todo', 'color': '#999'},
@@ -57,6 +51,5 @@ const labelList = [
 module.exports = {
   cardList,
   releaseList,
-  defaultRelease,
   labelList
 };

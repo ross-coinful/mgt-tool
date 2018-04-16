@@ -18,6 +18,11 @@ function sortList (list) {
   return _list;
 }
 
+function lowerFirstChar (word) {
+  return word.charAt(0).toLowerCase() + word.slice(1);
+}
+
 module.exports = {
-  sortList
+  sortList,
+  lowerFirstChar
 };

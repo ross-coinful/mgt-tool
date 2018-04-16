@@ -16,32 +16,61 @@
       <NewCard type="activity" :activityNumber="activityCardIds.length" />
     </div>
 
+    <!-- 只有在add a release above the unscheduled, 且 unscheduled order = 0 -->
+    <div
+      v-if="createReleaseIndex === -1"
+      class="board-list list-container"
+    >
+      <div class="release-title">
+        <input class="input" v-model="title" type="text" @blur="addRelease" autofocus />
+      </div>
+    </div>
+
     <div>
-      <div v-for="release in releaseList" class="board-list list-container" :key="release.id" :style="oneReleaseStyle">
-        <TaskBoard
-          v-for="(width, index) in boardWidths"
-          :parentId="activityCardIds[index]"
+      <div v-for="(release, releaseIndex) in releaseList" :key="release.id">
+        <Release
           :releaseId="release.id"
           :releaseTitle="release.title"
-          :width="calcWidth(width, index)"
-          :index="index"
-          :key="`width-${index}`"
-          :draggedId="draggedId"
-          :fillSpace="checkFillSpace(activityCardIds[index])"
-          :fillIndex="fillIndex"
-          :onEnd="onEnd"
-          :onMove="onMove">
-        </TaskBoard>
+          :releaseIndex="releaseIndex"
+          :setCreateReleasePos="setCreateReleasePos"
+          :isShrink="isShrink(release.id)"
+        />
+        <div class="board-list list-container" :style="oneReleaseStyle">
+          <TaskBoard
+            v-for="(width, index) in boardWidths"
+            :parentId="activityCardIds[index]"
+            :releaseId="release.id"
+            :width="calcWidth(width, index)"
+            :index="index"
+            :key="`width-${index}`"
+            :draggedId="draggedId"
+            :fillSpace="checkFillSpace(activityCardIds[index])"
+            :fillIndex="fillIndex"
+            :isShrink="isShrink(release.id)"
+            :onEnd="onEnd"
+            :onMove="onMove">
+          </TaskBoard>
 
-        <!-- 補齊右邊 release title 的底線 -->
-        <div style="flex: 1">
-          <div style="height: 21px; border-bottom: 1px dotted #bbb">
+        </div>
+
+        <div
+          v-if="releaseIndex === createReleaseIndex"
+          class="board-list list-container"
+        >
+          <div class="release-title">
+            <input
+              class="input"
+              v-model="title"
+              type="text"
+              @blur="addRelease"
+              @focus="$event.target.select()"
+              v-focus="isFocus"
+            />
           </div>
         </div>
 
       </div>
     </div>
-
     <CardModal />
   </div>
 </template>
@@ -51,6 +80,7 @@ import ActivityBoard from '@/components/ActivityBoard';
 import TaskBoard from '@/components/TaskBoard';
 import NewCard from '@/components/NewCard';
 import CardModal from '@/components/CardModal';
+import Release from '@/components/Release';
 import store from '../stores';
 import { defaultWidth } from '../../data';
 import { mapGetters } from 'vuex';
@@ -66,6 +96,14 @@ export default {
     ]),
     oneReleaseStyle () {
       return this.releaseList.length === 1 ? 'display: flex; flex-direction: column; height: calc(100vh - 248px)' : '';
+    },
+    title: {
+      get () {
+        return this.newRelease || `New release-${this.releaseList.length + 1}`;
+      },
+      set (value) {
+        this.newRelease = value;
+      }
     }
   },
   mounted () {
@@ -77,7 +115,8 @@ export default {
     ActivityBoard,
     TaskBoard,
     NewCard,
-    CardModal
+    CardModal,
+    Release
   },
   data () {
     return {
@@ -85,10 +124,17 @@ export default {
       subtractWidthIndex: null,
       draggedId: null,
       fillParentId: null,
-      fillIndex: null
+      fillIndex: null,
+      createReleaseIndex: null,
+      createReleaseOrder: null,
+      newRelease: '',
+      isFocus: false
     };
   },
   methods: {
+    isShrink (releaseId) {
+      return this.$store.state.release.shrinkReleaseIds.indexOf(releaseId) !== -1;
+    },
     taskCardIds (parentId) {
       return this.$store.getters.taskCardIds(parentId);
     },
@@ -288,6 +334,42 @@ export default {
         _width -= 128;
       }
       return Math.max(_width, defaultWidth);
+    },
+    addRelease () {
+      this.$store.dispatch('addRelease', {
+        title: this.title,
+        order: this.createReleaseOrder
+      });
+
+      const duplIndex = this.releaseList.findIndex(value => value.order === this.createReleaseOrder);
+
+      if (duplIndex !== -1) {
+        const updateRelease = this.releaseList.slice(duplIndex).map(value => {
+          value.order += 1;
+          return value;
+        });
+
+        this.$store.dispatch('updateRelease', updateRelease);
+      }
+
+      this.createReleaseIndex = null;
+      this.createReleaseOrder = null;
+      this.isFocus = false;
+      this.newRelease = '';
+    },
+    setCreateReleasePos (index, pos) {
+      const order = this.releaseList[index].order;
+      console.log('index', index, order);
+      this.createReleaseIndex = pos === 'above' ? index - 1 : index;
+      this.createReleaseOrder = pos === 'above' ? order : order + 1;
+      this.isFocus = true;
+    }
+  },
+  directives: {
+    focus: {
+      inserted: function (el) {
+        el.focus();
+      }
     }
   }
 };

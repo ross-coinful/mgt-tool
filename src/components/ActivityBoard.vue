@@ -90,7 +90,7 @@ export default {
   position: relative;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  /*align-items: center;*/
   height: 86px;
 }
 

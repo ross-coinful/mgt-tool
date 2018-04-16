@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const Card = mongoose.model('Card');
 
 router.get('/list', (req, res) => {
-  Card.find({}, {'_id': false, '_v': false}).exec((err, cards) => {
+  Card.find({}, {'_id': false}).exec((err, cards) => {
     if (err) {
       console.log('Get card list: Fail.', err);
       return res.status(400).end();
@@ -17,7 +17,7 @@ router.get('/list', (req, res) => {
 });
 
 router.get('/:id', (req, res) => {
-  Card.findOne({ id: req.params.id }, {'_id': false, '_v': false}).exec((err, card) => {
+  Card.findOne({ id: req.params.id }, {'_id': false}).exec((err, card) => {
     if (err) {
       console.log('Get card detail: Fail.', err);
       return res.status(400).end();

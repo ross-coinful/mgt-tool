@@ -28,6 +28,7 @@
 
 <script>
 import store from '../stores';
+import { lowerFirstChar } from '../utils';
 
 export default {
   name: 'CardModal',
@@ -98,7 +99,7 @@ export default {
   },
   methods: {
     toggleEdit (type, status) {
-      const _type = type.charAt(0).toLowerCase() + type.slice(1);
+      const _type = lowerFirstChar(type);
 
       this[`isFocus${type}`] = status;
 

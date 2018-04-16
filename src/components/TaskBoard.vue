@@ -1,9 +1,6 @@
 <template>
-  <div class="task-board" :style="style">
-    <div class="release-title">
-      <span v-if="index === 0">{{ releaseTitle }}</span>
-    </div>
-    <div class="board-body">
+  <div :class="setClass" :style="style">
+    <div v-if="!isShrink" class="board-body">
       <div v-for="(id, index) in taskCardIds" class="subtask-list" :key="id">
         <div v-if="displaySpace(index)" style="width: 128px;height: 100%">
 
@@ -41,7 +38,6 @@
 import SubTaskCard from '@/components/SubTaskCard';
 import NewCard from '@/components/NewCard';
 import draggable from 'vuedraggable';
-import store from '../stores';
 import { dragOptions } from '../../data';
 
 export default {
@@ -57,10 +53,6 @@ export default {
     },
     releaseId: {
       type: Number,
-      required: true
-    },
-    releaseTitle: {
-      type: String,
       required: true
     },
     draggedId: {
@@ -84,9 +76,12 @@ export default {
     onMove: {
       type: Function,
       required: true
+    },
+    isShrink: {
+      type: Boolean,
+      required: true
     }
   },
-  store,
   data () {
     return {
       show: false,
@@ -96,6 +91,9 @@ export default {
   computed: {
     style () {
       return 'width: ' + this.width + 'px';
+    },
+    setClass () {
+      return `task-board ${this.isShrink ? 'shrink' : ''}`;
     },
     taskCardIds () {
       const taskCardIds = this.$store.getters.taskCardIds(this.parentId);
@@ -154,6 +152,11 @@ export default {
 .task-board {
   display: flex;
   flex-direction: column;
+  min-height: 94px;
+}
+
+.task-board.shrink {
+  min-height: 22px;
 }
 
 .board-body {
@@ -167,14 +170,5 @@ export default {
 .subtask-list {
   position: relative;
   width: 128px;
-}
-
-.release-title {
-  height: 21px;
-  padding-left: 8px;
-  border-right: 1px dotted #bbb;
-  border-bottom: 1px dotted #bbb;
-  color: #66b9e1;
-  font-size: 14px;
 }
 </style>

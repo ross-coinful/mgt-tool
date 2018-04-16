@@ -44,11 +44,20 @@ const Card = new Schema({
     versionKey: false // You should be aware of the outcome after set to false
 });
 
+const Release = new Schema({
+    id: Number,
+    title: String,
+    order: Number
+}, {
+    versionKey: false // You should be aware of the outcome after set to false
+});
+
 // module.exports = mongoose.model('Messages', messagesSchema);
 
 // mongoose.model('Test', Test);
 // mongoose.model('Task', Task);
 mongoose.model('Card', Card);
+mongoose.model('Release', Release);
 mongoose.connect('mongodb://localhost:27017/db', (err, db) => {
 
   if (err) {
