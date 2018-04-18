@@ -82,10 +82,10 @@ export default {
         return false;
       }
 
-      this.$store.dispatch('updateCard', {
+      this.$store.dispatch('updateCard', [{
         id: parseInt(this.id, 10),
         labelId
-      });
+      }]);
       this.open = false;
     },
     upperLabel (title) {

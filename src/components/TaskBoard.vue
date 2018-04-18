@@ -165,6 +165,7 @@ export default {
   flex-wrap: wrap;
   flex: 1;
   padding-right: 0;
+  padding-bottom: 15px;
 }
 
 .subtask-list {

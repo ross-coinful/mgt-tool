@@ -46,6 +46,17 @@ router.post('/', (req, res) => {
   });
 });
 
+router.delete('/', (req, res) => {
+  Release.remove({id: req.body.id}).exec((err, cards) => {
+    if (err) {
+      console.log('Delete release: Fail.', err);
+      return res.status(400).end();
+    }
+    console.log('Delete release: Ok.');
+    return res.status(200).end();
+  });
+});
+
 router.patch('/', (req, res) => {
   const body = req.body;
   const promises = [];

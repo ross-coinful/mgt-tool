@@ -69,7 +69,7 @@ export default {
       axios({
         method: 'patch',
         url: `${localServer}/card`,
-        data: [data]
+        data
       })
       .then((response) => {
         commit('updateCardSuc', data);
@@ -246,7 +246,7 @@ export default {
 
       state.boardWidths = calcBoardWidths(newCardList);
     },
-    updateCard (state, data) {
+    updateCard (state) {
       state.updateCard = true;
       state.updateCardSuc = false;
     },
@@ -255,10 +255,10 @@ export default {
       state.updateCardSuc = true;
 
       const newCardList = state.cardList.slice();
-      const _card = newCardList.find(card => card.id === data.id);
 
-      Object.keys(data).forEach(key => {
-        _card[key] = data[key];
+      data.forEach((value) => {
+        const _card = newCardList.find(card => card.id === value.id);
+        Object.assign(_card, value);
       });
 
       state.cardList = newCardList;
@@ -277,7 +277,7 @@ export default {
       const newCardList = state.cardList.slice();
 
       ids.forEach(id => {
-        const deleteIndex = state.cardList.findIndex(value => value.id === id);
+        const deleteIndex = newCardList.findIndex(value => value.id === id);
         newCardList.splice(deleteIndex, 1);
       });
 

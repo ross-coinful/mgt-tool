@@ -104,10 +104,10 @@ export default {
       this[`isFocus${type}`] = status;
 
       if (!status && this[`initial${type}`] !== this[_type]) {
-        this.$store.dispatch('updateCard', {
+        this.$store.dispatch('updateCard', [{
           id: this.$store.state.card.focusId,
           [_type]: this[_type]
-        });
+        }]);
 
         this.updateType = type;
       }

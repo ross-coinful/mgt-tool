@@ -22,11 +22,13 @@ export default {
       });
     },
     shrinkRelease ({ commit }, id) {
-      console.log('id', id);
       commit('shrinkRelease', id);
     },
     expandRelease ({ commit }, id) {
       commit('expandRelease', id);
+    },
+    shrinkOtherReleases ({ commit }, id) {
+      commit('shrinkOtherReleases', id);
     },
     addRelease ({ commit }, data) {
       commit('addRelease');
@@ -57,6 +59,20 @@ export default {
       }, (error) => {
         commit('updateReleaseErr', error);
       });
+    },
+    deleteRelease ({ commit }, id) {
+      commit('deleteRelease');
+
+      axios({
+        method: 'delete',
+        url: `${localServer}/release`,
+        data: { id }
+      })
+      .then((response) => {
+        commit('deleteReleaseSuc', id);
+      }, (error) => {
+        commit('deleteReleaseErr', error);
+      });
     }
   },
   getters: {
@@ -77,12 +93,27 @@ export default {
       state.getReleaseListErr = err;
     },
     shrinkRelease (state, id) {
-      state.shrinkReleaseIds.push(id);
+      const newShrinkIds = state.shrinkReleaseIds.slice();
+
+      if (newShrinkIds.indexOf(id) === -1) {
+        newShrinkIds.push(id);
+      }
+
+      state.shrinkReleaseIds = newShrinkIds;
     },
     expandRelease (state, id) {
-      const removeIndex = state.shrinkReleaseIds.indexOf(id);
+      const newShrinkIds = state.shrinkReleaseIds.slice();
+      const removeIndex = newShrinkIds.indexOf(id);
+      newShrinkIds.splice(removeIndex, 1);
 
-      state.shrinkReleaseIds.splice(removeIndex, 1);
+      state.shrinkReleaseIds = newShrinkIds;
+    },
+    shrinkOtherReleases (state, id) {
+      const newShrinkIds = state.releaseList
+        .filter(value => value.id !== id)
+        .map(value => value.id);
+
+      state.shrinkReleaseIds = newShrinkIds;
     },
     moveRelease (state, { id, way }) {
       const newReleaseList = state.releaseList.slice();
@@ -130,6 +161,22 @@ export default {
     updateReleaseErr (state, err) {
       state.updateRelease = false;
       state.updateReleaseErr = err;
+    },
+    deleteRelease (state) {
+      state.deleteRelease = true;
+    },
+    deleteReleaseSuc (state, id) {
+      const newReleaseList = state.releaseList.slice();
+      const deleteIndex = newReleaseList.findIndex(value => value.id === id);
+      newReleaseList.splice(deleteIndex, 1);
+
+      state.releaseList = sortOrder(newReleaseList);
+      state.deleteRelease = false;
+      state.deleteReleaseSuc = true;
+    },
+    deleteReleaseErr (state, err) {
+      state.deleteRelease = false;
+      state.deleteReleaseErr = err;
     }
   }
 };

@@ -156,7 +156,6 @@ textarea {
 }
 
 .add-card-container {
-  position: absolute;
   width: 100%;
   height: 20px;
   text-align: center;

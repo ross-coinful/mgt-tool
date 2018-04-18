@@ -35,7 +35,7 @@
           :setCreateReleasePos="setCreateReleasePos"
           :isShrink="isShrink(release.id)"
         />
-        <div class="board-list list-container" :style="oneReleaseStyle">
+        <div class="board-list list-container">
           <TaskBoard
             v-for="(width, index) in boardWidths"
             :parentId="activityCardIds[index]"
@@ -94,12 +94,9 @@ export default {
       'releaseList',
       'boardWidths'
     ]),
-    oneReleaseStyle () {
-      return this.releaseList.length === 1 ? 'display: flex; flex-direction: column; height: calc(100vh - 248px)' : '';
-    },
     title: {
       get () {
-        return this.newRelease || `New release-${this.releaseList.length + 1}`;
+        return this.newRelease === null ? `New release-${this.releaseList.length + 1}` : this.newRelease;
       },
       set (value) {
         this.newRelease = value;
@@ -127,7 +124,7 @@ export default {
       fillIndex: null,
       createReleaseIndex: null,
       createReleaseOrder: null,
-      newRelease: '',
+      newRelease: null,
       isFocus: false
     };
   },
@@ -355,11 +352,11 @@ export default {
       this.createReleaseIndex = null;
       this.createReleaseOrder = null;
       this.isFocus = false;
-      this.newRelease = '';
+      this.newRelease = null;
     },
     setCreateReleasePos (index, pos) {
       const order = this.releaseList[index].order;
-      console.log('index', index, order);
+
       this.createReleaseIndex = pos === 'above' ? index - 1 : index;
       this.createReleaseOrder = pos === 'above' ? order : order + 1;
       this.isFocus = true;
