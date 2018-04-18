@@ -9,10 +9,20 @@ export default {
     isOpen: false,
     cardList: [],
     boardWidths: [defaultWidth],
+    shrinkCardIds: [],
     updateCard: false,
     updateCardSuc: false
   },
   actions: {
+    shrinkCard ({ commit }, id) {
+      commit('shrinkCard', id);
+    },
+    expandCard ({ commit }, id) {
+      commit('expandCard', id);
+    },
+    shrinkMultiCard ({ commit }, ids) {
+      commit('shrinkMultiCard', ids);
+    },
     setFocusId ({ commit }, id) {
       commit('setFocusId', id);
     },
@@ -171,6 +181,25 @@ export default {
     cardList: state => state.cardList
   },
   mutations: {
+    shrinkCard (state, id) {
+      const newShrinkIds = state.shrinkCardIds.slice();
+
+      if (newShrinkIds.indexOf(id) === -1) {
+        newShrinkIds.push(id);
+      }
+
+      state.shrinkCardIds = newShrinkIds;
+    },
+    expandCard (state, id) {
+      const newShrinkIds = state.shrinkCardIds.slice();
+      const removeIndex = newShrinkIds.indexOf(id);
+      newShrinkIds.splice(removeIndex, 1);
+
+      state.shrinkCardIds = newShrinkIds;
+    },
+    shrinkMultiCard (state, ids) {
+      state.shrinkCardIds = ids;
+    },
     setFocusId (state, id) {
       state.focusId = id;
     },

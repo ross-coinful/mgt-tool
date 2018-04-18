@@ -93,7 +93,7 @@ export default {
       return 'width: ' + this.width + 'px';
     },
     setClass () {
-      return `task-board ${this.isShrink ? 'shrink' : ''}`;
+      return `task-board board ${this.isShrink ? 'shrink' : ''}`;
     },
     taskCardIds () {
       const taskCardIds = this.$store.getters.taskCardIds(this.parentId);

@@ -1,6 +1,12 @@
 <template>
-  <div style="position: relative">
-    <div class="board-body">
+  <div class="activity-board board">
+    <div v-if="isShrink" class="shrink-card">
+      <span @click="expandCard">
+        <Icon type="plus" size="16"></Icon>
+      </span>
+      <span v-html="splitTitle" class="text"></span>
+    </div>
+    <div v-else class="board-body">
       <!-- <draggable class="activity-board" :options="{group:'card'}"> -->
       <ActivityCard :id="parentId"></ActivityCard>
       <!-- </draggable> -->
@@ -34,6 +40,10 @@ import { dragOptions } from '../../data';
 export default {
   name: 'ActivityBoard',
   props: {
+    isShrink: {
+      type: Boolean,
+      required: true
+    },
     width: {
       type: Number,
       required: true
@@ -53,6 +63,9 @@ export default {
   },
   store,
   computed: {
+    splitTitle () {
+      return this.$store.getters.card(this.parentId).title.split('').reduce((sum, cur) => { return sum + `${cur}<br />`; }, '');
+    },
     taskCardIds () {
       return this.$store.getters.taskCardIds(this.parentId);
     },
@@ -73,6 +86,9 @@ export default {
     };
   },
   methods: {
+    expandCard () {
+      this.$store.dispatch('expandCard', this.parentId);
+    },
     openCard () {
       this.$store.dispatch('openCard');
     }
@@ -82,6 +98,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.activity-board {
+  position: relative;
+}
+
 .board-body {
   height: 100%;
 }
@@ -90,8 +110,24 @@ export default {
   position: relative;
   display: flex;
   flex-direction: row;
-  /*align-items: center;*/
   height: 86px;
+}
+
+.shrink-card {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 20px;
+  height: 164px;
+  margin: 8px;
+  padding-top: 6px;
+  background-color: #aed9e9;
+}
+
+.shrink-card .text {
+  height: 130px;
+  overflow: hidden;
+  text-align: center;
 }
 
 .add-card {

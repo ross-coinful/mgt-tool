@@ -5,6 +5,7 @@
     <div class="board-list list-container" style="height: 180px">
       <ActivityBoard
         v-for="(id, index) in activityCardIds"
+        :isShrink="isCardShrink(id)"
         :parentId="id"
         :taskCardIds="taskCardIds(id)"
         :width="$store.state.card.boardWidths[index]"
@@ -33,10 +34,11 @@
           :releaseTitle="release.title"
           :releaseIndex="releaseIndex"
           :setCreateReleasePos="setCreateReleasePos"
-          :isShrink="isShrink(release.id)"
+          :isShrink="isReleaseShrink(release.id)"
         />
         <div class="board-list list-container">
           <TaskBoard
+            v-if="!isCardShrink(activityCardIds[index])"
             v-for="(width, index) in boardWidths"
             :parentId="activityCardIds[index]"
             :releaseId="release.id"
@@ -46,11 +48,11 @@
             :draggedId="draggedId"
             :fillSpace="checkFillSpace(activityCardIds[index])"
             :fillIndex="fillIndex"
-            :isShrink="isShrink(release.id)"
+            :isShrink="isReleaseShrink(release.id)"
             :onEnd="onEnd"
             :onMove="onMove">
           </TaskBoard>
-
+          <div v-else class="board" style="width: 36px"></div>
         </div>
 
         <div
@@ -129,7 +131,10 @@ export default {
     };
   },
   methods: {
-    isShrink (releaseId) {
+    isCardShrink (cardId) {
+      return this.$store.state.card.shrinkCardIds.indexOf(cardId) !== -1;
+    },
+    isReleaseShrink (releaseId) {
       return this.$store.state.release.shrinkReleaseIds.indexOf(releaseId) !== -1;
     },
     taskCardIds (parentId) {
@@ -427,9 +432,12 @@ export default {
 }
 /* overwrite iview style end*/
 
+.board {
+  border-right: 1px dotted #bbb;
+}
+
 .board-body {
   padding: 4px;
-  border-right: 1px dotted #bbb;
 }
 
 .link-btn-separator {

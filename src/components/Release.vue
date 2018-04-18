@@ -116,6 +116,21 @@ export default {
       this.$store.dispatch('shrinkRelease', this.releaseId);
     },
     shrinkOtherReleases () {
+      const shrinkCardIds = [];
+
+      this.$store.getters.activityCardIds.forEach((id) => {
+        const taskCardIds = this.$store.getters.taskCardIds(id);
+
+        taskCardIds.forEach((taskId) => {
+          const subtaskCardIds = this.$store.getters.subtaskCardIds(taskId, this.releaseId);
+
+          if (!subtaskCardIds.length) {
+            shrinkCardIds.push(id);
+          }
+        });
+      });
+
+      this.$store.dispatch('shrinkMultiCard', shrinkCardIds);
       this.$store.dispatch('shrinkOtherReleases', this.releaseId);
     },
     moveRelease (way) {
