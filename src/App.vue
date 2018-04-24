@@ -1,19 +1,57 @@
 <template>
   <div id="app">
-    <div class="header">Header</div>
+    <div v-if="$route.path !== '/login'" class="header">
+      <h2>Header</h2>
+      <Dropdown class="account-container">
+          <span class="account">
+            <Icon type="android-person" size="20"></Icon>
+            <span class="account-name">{{ username }}</span>
+            <Icon type="arrow-down-b" size="20"></Icon>
+          </span>
+          <DropdownMenu slot="list">
+            <span @click="logout">
+              <DropdownItem>Logout</DropdownItem>
+            </span>
+          </DropdownMenu>
+      </Dropdown>
+    </div>
     <router-view/>
   </div>
 </template>
 
 <script>
 import io from 'socket.io-client';
+import store from './stores';
+import { mapActions } from 'vuex';
 
 export default {
   name: 'App',
+  store,
   mounted () {
     this.socketConnect();
   },
+  computed: {
+    username () {
+      const { user } = this.$store.state.auth;
+
+      return user ? user.login : 'Account';
+    },
+    isLogout () {
+      return this.$store.state.auth.logout;
+    }
+  },
+  watch: {
+    isLogout (newValue, oldValue) {
+
+      if (newValue && !oldValue) {
+        this.$router.push('/login');
+      }
+    }
+  },
   methods: {
+    ...mapActions([
+      'logout'
+    ]),
     socketConnect () {
       this.socket = io.connect('ws://localhost:8010');
 
@@ -34,9 +72,29 @@ export default {
   padding-left: 8px;
   background-color: #191a1e;
   color: #66bae1;
-  font-size: 30px;
   line-height: 60px;
   text-align: left;
+}
+
+.header h2 {
+  display: inline-block;
+  font-size: 30px;
+  font-weight: normal;
+}
+
+.account-container {
+  float: right;
+  margin-right: 30px;
+  cursor: pointer;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+}
+
+.account-name {
+  margin: 0 5px;
 }
 </style>
 

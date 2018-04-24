@@ -68,10 +68,12 @@ mongoose.connect('mongodb://localhost:27017/db', (err, db) => {
 });
 
 // routes
+const auth = require('./auth');
 const card = require('./card');
 const release = require('./release');
 const label = require('./label');
 
+app.use('/auth', auth);
 app.use('/card', card);
 app.use('/release', release);
 app.use('/label', label);

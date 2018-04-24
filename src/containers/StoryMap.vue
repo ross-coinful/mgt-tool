@@ -105,10 +105,14 @@ export default {
       }
     }
   },
-  mounted () {
+  created () {
     this.$store.dispatch('getCardList');
     this.$store.dispatch('getReleaseList');
     this.$store.dispatch('getLabelList');
+
+    if (localStorage.getItem('token')) {
+      this.$store.dispatch('getUser');
+    }
   },
   components: {
     ActivityBoard,
