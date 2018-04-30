@@ -3,8 +3,8 @@ import Vuex from 'vuex';
 import card from './card';
 import cardDetail from './cardDetail';
 import release from './release';
-import label from './label';
 import auth from './auth';
+import map from './map';
 
 Vue.use(Vuex);
 
@@ -13,7 +13,7 @@ export default new Vuex.Store({
     card,
     cardDetail,
     release,
-    label,
-    auth
+    auth,
+    map
   }
 });

@@ -1,31 +1,35 @@
 import axios from 'axios';
 import { localServer } from '../../data';
 
-const METHODS = ['get', 'post', 'put', 'patch', 'del'];
+const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
-class ApiClient {
-  constructor (httpclient = axios) {
+const ApiClient = {};
 
-    METHODS.forEach((method) => {
-      this[method] = (path, { data = {}, types = [], commit } = {}) => new Promise((resolve, reject) => {
-        commit(types[0]);
+METHODS.forEach((method) => {
+  ApiClient[method] = (path, { data, params } = {}) => new Promise((resolve, reject) => {
 
-        axios({
-          method: method,
-          url: `${localServer}${path}`
-          // data
-        })
-        .then((response) => {
-          commit(types[1], response.data);
-          resolve(response.data);
-        }, (error) => {
-          commit(types[2], error);
-          reject(error);
-        });
-      });
+    const options = {
+      method,
+      url: `${localServer}${path}`,
+      withCredentials: true
+    };
 
+    if (data) {
+      options.data = data;
+    }
+
+    if (params) {
+      options.params = params;
+    }
+
+    axios(options)
+    .then((response) => {
+      resolve(response.data);
+    }, (error) => {
+      reject(error);
     });
-  }
-}
+  });
+
+});
 
 export default ApiClient;

@@ -2,19 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const mongoose = require('mongoose');
+const StoryMap = mongoose.model('StoryMap');
 const Card = mongoose.model('Card');
-
-router.get('/list', (req, res) => {
-  Card.find({}, {'_id': false}).exec((err, cards) => {
-    if (err) {
-      console.log('Get card list: Fail.', err);
-      return res.status(400).end();
-    }
-
-    console.log('Get card list: Ok.');
-    return res.status(200).json(cards).end();
-  });
-});
 
 router.get('/:id', (req, res) => {
   Card.findOne({ id: req.params.id }, {'_id': false}).exec((err, card) => {
@@ -38,19 +27,25 @@ router.post('/', (req, res) => {
       id = cards[count - 1].id + 1;
     }
     req.body.id = id;
-    new Card(req.body).save((err) => {
+    new Card(req.body).save((err, card) => {
       if (err) {
         console.log('Create a new card: Fail to save to DB.', err);
         return res.status(400).end();
       }
-      console.log('Create a new card: Save to DB.');
-      return res.status(200).json(id).end();
+
+      StoryMap.update({ id: req.body.mapId }, { $push: { cards: card._id } }).exec((err, result) => {
+        if (err) {
+          console.log('Update StoryMap with card: Fail.', err);
+          return res.status(400).end();
+        }
+        return res.status(200).json(id).end();
+      });
     });
   });
 });
 
 router.delete('/', (req, res) => {
-  Card.remove({id: { $in: req.body }}).exec((err, cards) => {
+  Card.remove({ id: { $in: req.body } }).exec((err, cards) => {
     if (err) {
       console.log('Delete card: Fail.', err);
       return res.status(400).end();
@@ -97,7 +92,8 @@ router.patch('/', (req, res) => {
           console.log('Update card: Fail.', err);
         }
         console.log('Update card: Ok.');
-      }));
+      })
+    );
   });
 
   Promise.all(promises).then(() => {

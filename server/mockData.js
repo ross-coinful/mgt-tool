@@ -41,15 +41,7 @@ const releaseList = [
   {'id': 2, 'title': 'release-2'}
 ];
 
-const labelList = [
-  {'id': 0, 'title': 'todo', 'color': '#999'},
-  {'id': 1, 'title': 'doing', 'color': '#00abe1'},
-  {'id': 2, 'title': 'done', 'color': '#FF705A'},
-  {'id': 3, 'title': 'ready', 'color': '#14c63e'}
-];
-
 module.exports = {
   cardList,
-  releaseList,
-  labelList
+  releaseList
 };

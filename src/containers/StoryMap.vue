@@ -106,13 +106,11 @@ export default {
     }
   },
   created () {
-    this.$store.dispatch('getCardList');
-    this.$store.dispatch('getReleaseList');
-    this.$store.dispatch('getLabelList');
+    const mapId = this.$router.currentRoute.params.id;
 
-    if (localStorage.getItem('token')) {
-      this.$store.dispatch('getUser');
-    }
+    this.$store.dispatch('getMap', mapId);
+    // this.$store.dispatch('getCardList', mapId);
+    // this.$store.dispatch('getReleaseList', mapId);
   },
   components: {
     ActivityBoard,
@@ -344,7 +342,8 @@ export default {
     addRelease () {
       this.$store.dispatch('addRelease', {
         title: this.title,
-        order: this.createReleaseOrder
+        order: this.createReleaseOrder,
+        mapId: this.$router.currentRoute.params.id
       });
 
       const duplIndex = this.releaseList.findIndex(value => value.order === this.createReleaseOrder);

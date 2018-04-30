@@ -24,7 +24,7 @@
 
 <script>
 import BaseCard from '@/components/BaseCard';
-import { emptyCard } from '../../data';
+import { emptyCard, labelList } from '../../data';
 
 export default {
   name: 'SubTaskCard',
@@ -44,7 +44,7 @@ export default {
   computed: {
     activeLabel () {
       const labelId = this.$store.getters.card(this.id).labelId;
-      const label = this.$store.getters.label(labelId);
+      const label = this.labelList.find(label => label.id === labelId);
 
       return label || null;
     },
@@ -57,18 +57,16 @@ export default {
     card () {
       return this.$store.getters.card(this.id);
     },
-    labelList () {
-      return this.$store.getters.labelList;
-    },
     style () {
       const labelId = this.$store.getters.card(this.id).labelId;
-      const label = this.$store.getters.label(labelId);
+      const label = this.labelList.find(label => label.id === labelId);
 
       return label ? `background-color: ${label.color}` : '';
     }
   },
   data () {
     return {
+      labelList,
       progress: '',
       open: false,
       emptyCard

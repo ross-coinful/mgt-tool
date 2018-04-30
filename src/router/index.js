@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import Home from '@/containers/Home';
 import StoryMap from '@/containers/StoryMap';
 import Login from '@/containers/Login';
+import MapList from '@/containers/MapList';
 
 Vue.use(Router);
 
@@ -10,6 +11,13 @@ const router = new Router({
   routes: [
     {
       path: '/',
+      name: 'MapList',
+      component: MapList,
+      meta: {
+        requireAuth: true
+      }
+    }, {
+      path: '/map/:id',
       name: 'StoryMap',
       component: StoryMap,
       meta: {

@@ -1,6 +1,4 @@
-// import apiClient from '../helpers/apiClient';
-import axios from 'axios';
-import { localServer, githubApi } from '../../data';
+import ApiClient from '../helpers/ApiClient';
 
 export default {
   state: {
@@ -13,49 +11,31 @@ export default {
     getToken ({ commit }, code) {
       commit('getToken');
 
-      axios({
-        method: 'get',
-        url: `${localServer}/auth/token/${code}`
-      })
+      ApiClient.GET(`/auth/token/${code}`)
       .then((response) => {
-        commit('getTokenSuc', response.data);
+        commit('getTokenSuc', response);
       }, (error) => {
         commit('getTokenErr', error);
       });
     },
     getUser ({ commit }) {
       commit('getUser');
+      const token = localStorage.getItem('token');
+      console.log('token', token);
 
-      axios({
-        method: 'get',
-        url: `${githubApi}/user`,
+      ApiClient.GET('/auth/user', {
         params: {
-          access_token: localStorage.getItem('token')
+          token
         }
       })
       .then((response) => {
-        console.log('user', response.data);
-        commit('getUserSuc', response.data);
+        commit('getUserSuc', response);
       }, (error) => {
         commit('getUserErr', error);
       });
     },
     logout ({ commit }) {
       commit('logout');
-
-      // axios({
-      //   method: 'get',
-      //   url: `${githubApi}/user`,
-      //   params: {
-      //     access_token: localStorage.getItem('token')
-      //   }
-      // })
-      // .then((response) => {
-      //   console.log('user', response.data);
-      //   commit('logoutSuc', response.data);
-      // }, (error) => {
-      //   commit('logoutErr', error);
-      // });
     }
   },
   getters: {
@@ -81,6 +61,7 @@ export default {
     getUserSuc (state, user) {
       state.getUser = false;
       state.getUserSuc = true;
+      console.log('user', user);
       state.user = user;
     },
     getUserErr (state, err) {
@@ -101,5 +82,16 @@ export default {
       state.logout = false;
       state.logoutErr = err;
     }
+    // addUser (state) {
+    //   state.addUser = true;
+    // },
+    // addUserSuc (state, user) {
+    //   state.addUser = false;
+    //   state.addUserSuc = true;
+    // },
+    // addUserErr (state, err) {
+    //   state.addUser = false;
+    //   state.addUserErr = err;
+    // },
   }
 };

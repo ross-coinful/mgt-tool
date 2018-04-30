@@ -39,7 +39,6 @@ export default {
   },
   watch: {
     getTokenSuc (newValue, oldValue) {
-
       if (newValue && !oldValue) {
         this.$router.push('/');
         this.$store.dispatch('getUser');

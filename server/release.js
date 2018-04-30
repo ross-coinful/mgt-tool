@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const mongoose = require('mongoose');
+const StoryMap = mongoose.model('StoryMap');
 const Release = mongoose.model('Release');
 
 router.get('/list', (req, res) => {
@@ -35,13 +36,18 @@ router.post('/', (req, res) => {
 
     req.body.id = id;
 
-    new Release(req.body).save((err) => {
+    new Release(req.body).save((err, release) => {
       if (err) {
         console.log('Create a new release: Fail to save to DB.', err);
         return res.status(400).end();
       }
-      console.log('Create a new release: Save to DB.');
-      return res.status(200).json(id).end();
+
+      StoryMap.update({ id: req.body.mapId }, { $push: { releases: release._id } }).exec((err, result) => {
+        if (err) {
+          console.log('Update StoryMap with release: Fail.', err);
+        }
+        return res.status(200).json(id).end();
+      });
     });
   });
 });

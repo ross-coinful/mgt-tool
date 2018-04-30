@@ -1,6 +1,4 @@
-// import apiClient from '../helpers/apiClient';
-import axios from 'axios';
-import { localServer } from '../../data';
+import ApiClient from '../helpers/ApiClient';
 
 export default {
   state: {
@@ -8,19 +6,6 @@ export default {
     shrinkReleaseIds: []
   },
   actions: {
-    getReleaseList ({ commit }) {
-      commit('getReleaseList');
-
-      axios({
-        method: 'get',
-        url: `${localServer}/release/list`
-      })
-      .then((response) => {
-        commit('getReleaseListSuc', response.data);
-      }, (error) => {
-        commit('getReleaseListErr', error);
-      });
-    },
     shrinkRelease ({ commit }, id) {
       commit('shrinkRelease', id);
     },
@@ -33,13 +18,10 @@ export default {
     addRelease ({ commit }, data) {
       commit('addRelease');
 
-      axios({
-        method: 'post',
-        url: `${localServer}/release`,
+      ApiClient.POST('/release', {
         data
-      })
-      .then((response) => {
-        data.id = response.data;
+      }).then((id) => {
+        data.id = id;
 
         commit('addReleaseSuc', data);
       }, (error) => {
@@ -49,12 +31,9 @@ export default {
     updateRelease ({ commit }, data) {
       commit('updateRelease');
 
-      axios({
-        method: 'patch',
-        url: `${localServer}/release`,
+      ApiClient.PATCH('/release', {
         data
-      })
-      .then((response) => {
+      }).then((response) => {
         commit('updateReleaseSuc', data);
       }, (error) => {
         commit('updateReleaseErr', error);
@@ -63,16 +42,22 @@ export default {
     deleteRelease ({ commit }, id) {
       commit('deleteRelease');
 
-      axios({
-        method: 'delete',
-        url: `${localServer}/release`,
-        data: { id }
-      })
-      .then((response) => {
+      ApiClient.DELETE('/release', {
+        data: {
+          id
+        }
+      }).then((response) => {
         commit('deleteReleaseSuc', id);
       }, (error) => {
         commit('deleteReleaseErr', error);
       });
+
+      // axios({
+      //   method: 'delete',
+      //   url: `${localServer}/release`,
+      //   data: { id }
+      // })
+
     }
   },
   getters: {
@@ -80,18 +65,18 @@ export default {
     shrinkReleaseIds: state => state.shrinkReleaseIds
   },
   mutations: {
-    getReleaseList (state) {
-      state.getReleaseList = true;
-    },
-    getReleaseListSuc (state, list) {
-      state.getReleaseList = false;
-      state.getReleaseListSuc = true;
+    // getReleaseList (state) {
+    //   state.getReleaseList = true;
+    // },
+    setReleaseList (state, list) {
+      // state.getReleaseList = false;
+      // state.getReleaseListSuc = true;
       state.releaseList = sortOrder(list);
     },
-    getReleaseListErr (state, err) {
-      state.getReleaseList = false;
-      state.getReleaseListErr = err;
-    },
+    // getReleaseListErr (state, err) {
+    //   state.getReleaseList = false;
+    //   state.getReleaseListErr = err;
+    // },
     shrinkRelease (state, id) {
       const newShrinkIds = state.shrinkReleaseIds.slice();
 

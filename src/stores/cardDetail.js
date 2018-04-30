@@ -1,6 +1,4 @@
-// import apiClient from '../helpers/apiClient';
-import axios from 'axios';
-import { localServer } from '../../data';
+import ApiClient from '../helpers/ApiClient';
 
 export default {
   state: {
@@ -13,12 +11,9 @@ export default {
     getCardDetail ({ commit }, id) {
       commit('getCardDetail');
 
-      axios({
-        method: 'get',
-        url: `${localServer}/card/${id}`
-      })
+      ApiClient.GET(`/card/${id}`)
       .then((response) => {
-        commit('getCardDetailSuc', response.data);
+        commit('getCardDetailSuc', response);
       }, (error) => {
         commit('getCardDetailErr', error);
       });

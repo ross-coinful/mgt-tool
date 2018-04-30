@@ -114,6 +114,7 @@ export default {
       console.log('save');
       this.isFocus = false;
       this.cardData.title = this.title;
+      this.cardData.mapId = this.$router.currentRoute.params.id;
 
       this.$store.dispatch('addCard', {
         data: this.cardData,

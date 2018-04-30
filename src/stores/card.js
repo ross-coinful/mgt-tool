@@ -1,6 +1,5 @@
-// import apiClient from '../helpers/apiClient';
-import axios from 'axios';
-import { localServer, defaultWidth } from '../../data';
+import ApiClient from '../helpers/ApiClient';
+import { defaultWidth } from '../../data';
 import { sortList } from '../utils';
 
 export default {
@@ -32,19 +31,6 @@ export default {
     closeCard ({ commit }) {
       commit('closeCard');
     },
-    getCardList ({ commit }) {
-      commit('getCardList');
-
-      axios({
-        method: 'get',
-        url: `${localServer}/card/list`
-      })
-      .then((response) => {
-        commit('getCardListSuc', response.data);
-      }, (error) => {
-        commit('getCardListErr', error);
-      });
-    },
     getCard ({ commit }, id) {
       commit('getCard', id);
     },
@@ -60,13 +46,11 @@ export default {
         data.labelId = 0;
       }
 
-      axios({
-        method: 'post',
-        url: `${localServer}/card`,
+      ApiClient.POST('/card', {
         data
       })
-      .then((response) => {
-        data.id = response.data;
+      .then((id) => {
+        data.id = id;
         callback();
         commit('addCardSuc', data);
       }, (error) => {
@@ -76,12 +60,9 @@ export default {
     updateCard ({ commit }, data) {
       commit('updateCard');
 
-      axios({
-        method: 'patch',
-        url: `${localServer}/card`,
+      ApiClient.PATCH('/card', {
         data
-      })
-      .then((response) => {
+      }).then((response) => {
         commit('updateCardSuc', data);
       }, (error) => {
         commit('updateCardErr', error);
@@ -90,12 +71,9 @@ export default {
     updateCardPos ({ commit }, data) {
       commit('updateCardPos', data);
 
-      axios({
-        method: 'patch',
-        url: `${localServer}/card`,
+      ApiClient.PATCH('/card', {
         data
-      })
-      .then((response) => {
+      }).then((response) => {
         console.log('updateCardPos suc');
       }, (error) => {
         console.log('updateCardPos', error);
@@ -123,21 +101,16 @@ export default {
 
       commit('deleteCard');
 
-      axios({
-        method: 'delete',
-        url: `${localServer}/card`,
+      ApiClient.DELETE('/card', {
         data: ids
-      })
-      .then((response) => {
+      }).then((response) => {
 
         if (nextId !== null) {
           const prevId = 'prevId' in card ? card.prevId : null;
 
           commit('deleteCardSuc', {ids, nextId, prevId});
 
-          axios({
-            method: 'patch',
-            url: `${localServer}/card`,
+          ApiClient.PATCH('/card', {
             data: [{
               id: nextId,
               prevId
@@ -209,20 +182,20 @@ export default {
     closeCard (state) {
       state.isOpen = false;
     },
-    getCardList (state, id) {
-      state.getCardList = true;
-    },
-    getCardListSuc (state, list) {
-      state.getCardList = false;
-      state.getCardListSuc = true;
+    // getCardList (state, id) {
+    //   state.getCardList = true;
+    // },
+    setCardList (state, list) {
+      // state.getCardList = false;
+      // state.getCardListSuc = true;
       state.cardList = list;
 
       state.boardWidths = calcBoardWidths(list);
     },
-    getCardListErr (state, err) {
-      state.getCardList = false;
-      state.getCardListErr = err;
-    },
+    // getCardListErr (state, err) {
+    //   state.getCardList = false;
+    //   state.getCardListErr = err;
+    // },
     updateBoardWidths (state, activityIndex) {
       const newBoardWidths = state.boardWidths.slice();
 
