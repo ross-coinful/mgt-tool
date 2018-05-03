@@ -3,7 +3,7 @@ import ApiClient from '../helpers/ApiClient';
 export default {
   state: {
     getTokenSuc: false,
-    logout: false,
+    logoutSuc: false,
     token: null,
     user: null
   },
@@ -36,6 +36,13 @@ export default {
     },
     logout ({ commit }) {
       commit('logout');
+
+      ApiClient.GET('/auth/logout')
+      .then((response) => {
+        commit('logoutSuc', response);
+      }, (error) => {
+        commit('logoutErr', error);
+      });
     }
   },
   getters: {
@@ -47,7 +54,6 @@ export default {
     getTokenSuc (state, token) {
       state.getToken = false;
       state.getTokenSuc = true;
-      state.token = token;
 
       localStorage.setItem('token', token);
     },
@@ -71,12 +77,12 @@ export default {
     logout (state) {
       state.logout = true;
       state.user = null;
-
-      localStorage.removeItem('token');
     },
     logoutSuc (state, user) {
       state.logout = false;
       state.logoutSuc = true;
+
+      localStorage.removeItem('token');
     },
     logoutErr (state, err) {
       state.logout = false;

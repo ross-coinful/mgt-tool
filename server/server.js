@@ -31,10 +31,10 @@ const { Schema } = mongoose;
 const User = new Schema({
     id: Number,
     name: String,
-    src: String,
+    service: String,
     maps: Array
 }, {
-    versionKey: false // You should be aware of the outcome after set to false
+    versionKey: false
 });
 
 const StoryMap = new Schema({
@@ -44,7 +44,7 @@ const StoryMap = new Schema({
     cards: Array,
     releases: Array
 }, {
-    versionKey: false // You should be aware of the outcome after set to false
+    versionKey: false
 });
 
 const Card = new Schema({
@@ -57,7 +57,7 @@ const Card = new Schema({
     releaseId: Number,
     labelId: Number
 }, {
-    versionKey: false // You should be aware of the outcome after set to false
+    versionKey: false
 });
 
 const Release = new Schema({
@@ -65,7 +65,7 @@ const Release = new Schema({
     title: String,
     order: Number
 }, {
-    versionKey: false // You should be aware of the outcome after set to false
+    versionKey: false // remove _v field
 });
 
 const UserModel = mongoose.model('User', User);
@@ -87,40 +87,34 @@ app.use(passport.session());
 app.use(flash());
 
 passport.serializeUser(function (user, done) {
-  console.log('serializeUser', user._id);
   done(null, user._id);
 });
 
 passport.deserializeUser(function (id, done) {
-  console.log('deserial', id);
   done(null, id);
 });
 
 passport.use('login', new LocalStrategy({
+    usernameField: 'id',
+    passwordField: 'service',
     passReqToCallback: true
   }, function (req, username, password, done) {
-    console.log('you are heheehehheere', username, password);
-    UserModel.findOne({id: username, src: password}).exec((err, user) => {
-
-      console.log('findOne', err, user);
+    UserModel.findOne({id: username, service: password}).exec((err, user) => {
 
       if (err) {
-        console.log('1111', err);
-        return done(null, false, { message: '用户名不存在.' });
+        return done(null, false, { message: 'find account failed.' });
       } else if (user) {
-        console.log('get user suc', user);
         return done(null, user);
       } else {
         const user = {
           id: username,
-          src: password,
+          service: password,
           name: req.body.name
         };
 
         new UserModel(user).save((err, result) => {
           if (err) {
-            console.log('Create a new user: Fail to save to DB.', err);
-            return done(null, false, { message: 'create failed.' });
+            return done(null, false, { message: 'create account failed.' });
           }
           return done(null, result);
         });
@@ -129,8 +123,10 @@ passport.use('login', new LocalStrategy({
   }
 ));
 
-function authenticated (req, res, next) {
-  if (req.isAuthenticated()) {
+function isAuthenticated(req, res, next) {
+
+  if(req.isAuthenticated()) {
+    console.log('is auth');
     return next();
   }
   return res.status(401).end();
@@ -142,10 +138,10 @@ const card = require('./card');
 const release = require('./release');
 const map = require('./map');
 
-app.use('/auth', auth(passport, authenticated));
-app.use('/card', card);
-app.use('/release', release);
-app.use('/map', map(passport, authenticated));
+app.use('/auth', auth(passport, isAuthenticated));
+app.use('/card', card(passport, isAuthenticated));
+app.use('/release', release(passport, isAuthenticated));
+app.use('/map', map(passport, isAuthenticated));
 
 app.listen(port, () => {
   console.log('==>Server is running on port %s', port);

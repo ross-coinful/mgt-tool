@@ -34,7 +34,7 @@ export default {
     }
   },
   mounted () {
-    this.socketConnect();
+    // this.socketConnect();
   },
   computed: {
     username () {
@@ -43,7 +43,7 @@ export default {
       return user ? user.name : 'Account';
     },
     isLogout () {
-      return this.$store.state.auth.logout;
+      return this.$store.state.auth.logoutSuc;
     }
   },
   watch: {
