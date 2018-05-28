@@ -44,7 +44,7 @@
       <h3>Name and description</h3>
       <div class="map-name">
         <label>Name</label>
-        <input class="input" v-model="name" type="text"/>
+        <input ref="input" class="input" v-model="name" type="text" />
         <p class="error" v-show="error">{{ error }}</p>
       </div>
 
@@ -115,6 +115,10 @@ export default {
         this.name = '';
         this.desc = '';
         this.error = '';
+
+        setTimeout(() => {
+          this.$refs.input.focus();
+        }, 0);
       }
     }
   }
