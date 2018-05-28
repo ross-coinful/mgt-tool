@@ -221,7 +221,6 @@ export default {
 .release-title {
   height: 21px;
   padding-left: 8px;
-  border-right: 1px dotted #bbb;
   border-bottom: 1px dotted #bbb;
   background-color: #efefef;
   color: #66b9e1;

@@ -2,7 +2,7 @@
 
   <div class="story-map">
 
-    <div class="board-list list-container" style="height: 180px">
+    <div class="activity-board-container board-list list-container" style="height: 180px">
       <ActivityBoard
         v-for="(id, index) in activityCardIds"
         :isShrink="isCardShrink(id)"
@@ -27,8 +27,8 @@
       </div>
     </div>
 
-    <div>
-      <div v-for="(release, releaseIndex) in releaseList" :key="release.id">
+    <div class="task-board-container">
+      <div class="release-row" v-for="(release, releaseIndex) in releaseList" :key="release.id">
         <Release
           :releaseId="release.id"
           :releaseTitle="release.title"
@@ -381,9 +381,30 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
+.story-map,
+.task-board-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.story-map,
+.task-board-container,
+.release-row:last-child {
+  flex: 1;
+}
+
 .story-map {
   text-align: left;
+  overflow: hidden;
+}
+
+.task-board-container {
+  overflow: auto;
+}
+
+.axtivity-board-container {
+  height: 180px;
 }
 
 .list-container {
@@ -397,9 +418,8 @@ export default {
   flex-direction: row;
 }
 
-.release-title:last-child {
-  flex: 1;
-  border-right: 0;
+.release-row:last-child .board-list {
+  height: calc(100% - 25px);
 }
 </style>
 

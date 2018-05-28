@@ -128,23 +128,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-/*.board-title {
-  padding: 4px;
-  border-right: 1px dotted #bbb;
-  border-bottom: 1px dotted #bbb;*/
-
-  /* dotted border right */
-/*  background-image: linear-gradient(black 33%, rgba(255,255,255,0) 0%);
-  background-position: right;
-  background-size: 1px 3px;
-  background-repeat: repeat-y;*/
-
-  /* dotted border bottom */
-/*  background-image: linear-gradient(to right, #aaa 20%, rgba(255, 255, 255, 0) 0%);
-  background-position: bottom;
-  background-size: 3px 1px;
-  background-repeat: repeat-x;*/
-/*}*/
 .hidden {
   display: none;
 }

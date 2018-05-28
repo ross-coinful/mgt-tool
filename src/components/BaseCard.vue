@@ -54,6 +54,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.card {
+  overflow: hidden;
+}
+
 .card-toolbar {
   position: absolute;
   z-index: 0;

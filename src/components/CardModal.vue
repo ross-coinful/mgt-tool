@@ -4,7 +4,7 @@
     title="Card"
     ok-text="add comment"
     @on-visible-change="visiableChange">
-    <div class="title">
+    <div class="card-title">
       <p class="display" v-if="!isFocusTitle" @click="focusTitle">{{ cardTitle }}</p>
       <input class="input" v-else v-model="title" type="text" @blur="blurTitle" v-focus="isFocusTitle" />
     </div>
@@ -162,12 +162,11 @@ export default {
   outline: 0;
 }
 
-.title {
-  height: 30px;
+.card-title {
   margin-bottom: 20px;
 }
 
-.title .display {
+.card-title .display {
   color: #282828;
   font-weight: bold;
   font-size: 16px;

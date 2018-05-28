@@ -1,6 +1,6 @@
 <template>
   <BaseCard type="task" :id="id">
-    <p v-if="card.title">{{ card.title }}</p>
+    <p class="card-title" v-if="card.title">{{ card.title }}</p>
     <p v-else class="empty-title">{{ emptyCard }}</p>
   </BaseCard>
 </template>

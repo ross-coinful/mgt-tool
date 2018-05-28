@@ -1,6 +1,6 @@
 <template>
   <BaseCard type="subtask" :id="id">
-    <p v-if="card.title">{{ card.title }}</p>
+    <p class="card-title" v-if="card.title">{{ card.title }}</p>
     <p v-else class="empty-title">{{ emptyCard }}</p>
 
     <div class="label-dropdown" @mouseout="closeDropdown">
@@ -17,8 +17,6 @@
         </div>
       </div>
     </div>
-
-    <p>Points:</p>
   </BaseCard>
 </template>
 
