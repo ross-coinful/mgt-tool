@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 
 const DB_URL = 'mongodb://localhost:27017/db';
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+// const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const flash = require('connect-flash');
@@ -91,8 +91,12 @@ passport.serializeUser(function (user, done) {
 });
 
 passport.deserializeUser(function (id, done) {
-  done(null, id);
+  UserModel.findOne({ _id: id }).exec((err, user) => {
+    done(err, user);
+  });
 });
+
+const LocalStrategy = require('passport-local').Strategy;
 
 passport.use('login', new LocalStrategy({
     usernameField: 'id',
@@ -123,9 +127,9 @@ passport.use('login', new LocalStrategy({
   }
 ));
 
-function isAuthenticated(req, res, next) {
+function isAuthenticated (req, res, next) {
 
-  if(req.isAuthenticated()) {
+  if (req.isAuthenticated()) {
     console.log('is auth');
     return next();
   }

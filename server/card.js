@@ -18,6 +18,11 @@ module.exports = function (passport, isAuthenticated) {
 
   router.post('/', isAuthenticated, (req, res) => {
     Card.find().exec((error, cards) => {
+
+      if (error) {
+        return res.status(400).json(error).end();
+      }
+
       const count = cards.length;
       let id = 0;
 
@@ -30,10 +35,10 @@ module.exports = function (passport, isAuthenticated) {
         if (err) {
           return res.status(400).json(err).end();
         }
-        StoryMap.update({ id: req.body.mapId }, { $push: { cards: card._id } }).exec((error, result) => {
+        StoryMap.update({ id: req.body.mapId }, { $push: { cards: card._id } }).exec((error2, result) => {
 
-          if (error) {
-            return res.status(400).json(error).end();
+          if (error2) {
+            return res.status(400).json(error2).end();
           }
           return res.status(200).json(id).end();
         });

@@ -8,18 +8,12 @@ const Release = mongoose.model('Release');
 
 module.exports = function (passport, isAuthenticated) {
   router.get('/list', isAuthenticated, (req, res) => {
-    User.findOne({ _id: req.user }, {'_id': false}).exec((err, user) => {
+    StoryMap.find({_id: {$in: req.user.maps}}, {'_id': false}).exec((error, maps) => {
 
-      if (err) {
-        return res.status(400).json(err).end();
+      if (error) {
+        return res.status(400).json(error).end();
       }
-      StoryMap.find({_id: {$in: user.maps}}, {'_id': false}).exec((error, maps) => {
-
-        if (error) {
-          return res.status(400).json(error).end();
-        }
-        return res.status(200).json(maps).end();
-      });
+      return res.status(200).json(maps).end();
     });
   });
 
@@ -72,6 +66,10 @@ module.exports = function (passport, isAuthenticated) {
       const count = stories.length;
       let id = 0;
 
+      if (error) {
+        return res.status(400).json(error).end();
+      }
+
       if (count !== 0) {
         id = stories[count - 1].id + 1;
       }
@@ -81,9 +79,9 @@ module.exports = function (passport, isAuthenticated) {
           return res.status(400).json(err).end();
         }
 
-        User.update({ _id: req.user }, { $push: { maps: map._id } }).exec((error, result) => {
-          if (error) {
-            return res.status(400).json(error).end();
+        User.update({ _id: req.user._id }, { $push: { maps: map._id } }).exec((error2, result) => {
+          if (error2) {
+            return res.status(400).json(error2).end();
           }
           return res.status(200).json(id).end();
         });
