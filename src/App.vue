@@ -122,7 +122,7 @@ export default {
       const style = `zoom: ${this.zoomLevel * 100}%;`;
 
       if (this.activePanel !== '') {
-        return `${style} width: calc(100% - 400px)`;
+        return `${style} width: calc(100% - ${400 / this.zoomLevel}px)`;
       }
       return style;
     },
@@ -335,6 +335,7 @@ export default {
   width: 400px;
   height: calc(100vh - 60px);
   background-color: #fff;
+  border-left: 1px dotted #bbb;
   color: #000;
   transition: width .8s;
   .circle-border {

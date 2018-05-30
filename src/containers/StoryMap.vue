@@ -2,7 +2,7 @@
 
   <div class="story-map">
 
-    <div class="activity-board-container board-list list-container" style="height: 180px">
+    <div class="activity-board-container board-list list-container">
       <ActivityBoard
         v-for="(id, index) in activityCardIds"
         :isShrink="isCardShrink(id)"
@@ -382,32 +382,35 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
-.story-map,
-.task-board-container {
-  display: flex;
-  flex-direction: column;
-}
+// .story-map,
+// .task-board-container {
+//   display: flex;
+//   flex-direction: column;
+// }
 
-.story-map,
-.task-board-container,
-.release-row:last-child {
-  flex: 1;
-}
+// .story-map,
+// .task-board-container,
+// .release-row:last-child {
+//   flex: 1;
+// }
 
 .story-map {
+  flex: 1;
   width: 100%;
   overflow-y: hidden;
   text-align: left;
   transition: width .8s;
 }
 
-.task-board-container {
-  overflow-y: auto;
-  overflow-x: hidden;
+.activity-board-container {
+  height: 180px;
 }
 
-.axtivity-board-container {
-  height: 180px;
+.task-board-container {
+  display: inline-block;
+  height: calc(100% - 180px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .list-container {
@@ -415,14 +418,19 @@ export default {
   background-color: #efefef;
 }
 
-.board-list,
-.release-list {
-  display: flex;
-  flex-direction: row;
+.board-list {
+  display: table;
 }
 
-.release-row:last-child .board-list {
-  height: calc(100% - 25px);
+.board-list .board {
+  display: table-cell;
+}
+
+.release-row:last-child {
+  height: 100%;
+  .board-list {
+    height: calc(100% - 25px);
+  }
 }
 </style>
 
