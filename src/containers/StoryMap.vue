@@ -395,12 +395,15 @@ export default {
 }
 
 .story-map {
+  width: 100%;
+  overflow-y: hidden;
   text-align: left;
-  overflow: hidden;
+  transition: width .8s;
 }
 
 .task-board-container {
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .axtivity-board-container {

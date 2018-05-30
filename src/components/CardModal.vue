@@ -2,18 +2,32 @@
   <Modal
     v-model="$store.state.card.isOpen"
     title="Card"
+    width="700"
     ok-text="add comment"
     @on-visible-change="visiableChange">
-    <div class="card-title">
-      <p class="display" v-if="!isFocusTitle" @click="focusTitle">{{ cardTitle }}</p>
-      <input class="input" v-else v-model="title" type="text" @blur="blurTitle" v-focus="isFocusTitle" />
-    </div>
+    <div class="modal-body">
+      <div class="content">
+        <div class="card-title">
+          <p class="display" v-if="!isFocusTitle" @click="focusTitle">{{ cardTitle }}</p>
+          <input class="input" v-else v-model="title" type="text" @blur="blurTitle" v-focus="isFocusTitle" />
+        </div>
 
-    <div class="detail">
-      <p class="display" v-if="!isFocusDetail" @click="focusDetail">{{ cardDetail }}</p>
-      <textarea class="input" v-else v-model="detail" @blur="blurDetail" v-focus="isFocusDetail"></textarea>
+        <div class="detail">
+          <p class="display" v-if="!isFocusDetail" @click="focusDetail">{{ cardDetail }}</p>
+          <textarea class="input" v-else v-model="detail" @blur="blurDetail" v-focus="isFocusDetail"></textarea>
+        </div>
+      </div>
+      <div class="setting">
+        <div>
+          <label>Add issue to</label>
+          <CheckboxGroup v-model="checkAllGroup" @on-change="checkAllGroupChange">
+            <Checkbox label="香蕉"></Checkbox>
+            <Checkbox label="苹果"></Checkbox>
+            <Checkbox label="西瓜"></Checkbox>
+          </CheckboxGroup>
+        </div>
+      </div>
     </div>
-
     <div slot="footer">
       <Button type="text">add comment</Button>
       <span class="link-btn-separator">&nbsp;|&nbsp;</span>
@@ -88,7 +102,8 @@ export default {
       title: '',
       detail: '',
       updateType: '',
-      isSubtask: false
+      isSubtask: false,
+      checkAllGroup: ['香蕉', '西瓜']
     };
   },
   created () {
@@ -98,6 +113,9 @@ export default {
     });
   },
   methods: {
+    checkAllGroupChange (data) {
+      console.log('check', data);
+    },
     toggleEdit (type, status) {
       const _type = lowerFirstChar(type);
 
@@ -180,5 +198,23 @@ export default {
 .detail .display {
   color: #282828;
   font-size: 14px;
+}
+
+.modal-body {
+  display: flex;
+}
+
+.content {
+  width: 400px;
+}
+
+.setting {
+  padding-left: 10px;
+  flex: 1;
+  border-left: 1px dotted #000;
+}
+
+.ivu-checkbox-group-item {
+  width: 100%;
 }
 </style>

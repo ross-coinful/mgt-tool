@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    <h1>Sign in</h1>
+  <div class="login">
+    <h1 style="margin-top: 200px">Sign in</h1>
 
     <form>
     <!--
@@ -32,17 +32,6 @@ export default {
   computed: {
     disabled () {
       return this.username === '' || this.password === '';
-    },
-    getTokenSuc () {
-      return this.$store.state.auth.getTokenSuc;
-    }
-  },
-  watch: {
-    getTokenSuc (newValue, oldValue) {
-      if (newValue && !oldValue) {
-        this.$router.push('/');
-        this.$store.dispatch('getUser');
-      }
     }
   },
   methods: {
@@ -50,9 +39,6 @@ export default {
       this.loading = true;
 
       window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&state=${state}`;
-      // this.$store.dispatch('checkAuth');
-
-      console.log('login');
     }
   },
   created () {
@@ -64,7 +50,7 @@ export default {
 
       console.log('state', window.history.state.code);
 
-      this.$store.dispatch('getToken', code);
+      this.$store.dispatch('login', code);
     }
   }
 };

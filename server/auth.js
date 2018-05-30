@@ -1,11 +1,13 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
+
+const mongoose = require('mongoose');
+const User = mongoose.model('User');
 
 const axios = require('axios');
 const { clientId, clientSecret, state, githubApi } = require('../data');
 
 module.exports = function (passport, isAuthenticated) {
-  router.get('/token/:code', (req, res) => {
+  router.get('/token/:code', (req, res, next) => {
 
     axios({
       method: 'post',
@@ -21,39 +23,48 @@ module.exports = function (passport, isAuthenticated) {
         state: state
       }
     }).then((response) => {
-      return res.status(200).json(response.data.access_token).end();
-    }, (error) => {
-      return res.status(400).json(error).end();
-    });
-  });
+      const token = response.data.access_token;
 
-  router.get('/user', (req, res, next) => {
-    axios({
-      method: 'get',
-      url: `${githubApi}/user`,
-      params: {
-        access_token: req.query.token
-      }
-    })
-    .then((response) => {
-      passport.authenticate('login', function (err, user, info) {
-
-        if (err) {
-          return res.status(400).json(err).end();
+      axios({
+        method: 'get',
+        url: `${githubApi}/user`,
+        params: {
+          access_token: token
         }
+      })
+      .then((response) => {
+        const { data: { id, login, avatar_url: avatar } } = response;
 
-        if (!user) {
-          return res.status(400).json(info).end();
-        }
+        console.log('get user response', response);
+        passport.authenticate('login', function (err, user, info) {
 
-        req.login(user, function (error) {
-          if (error) {
-            return next(error);
+          if (err) {
+            return res.status(400).json(err).end();
           }
-          return res.status(200).json(user).end();
-        });
-      })({body: {id: response.data.id, service: 'github', name: response.data.login}}, res, next);
 
+          if (!user) {
+            return res.status(400).json(info).end();
+          }
+
+          req.login(user, function (err2) {
+            if (err2) {
+              return next(err2);
+            }
+
+            User.findOneAndUpdate({ _id: req.user._id }, { name: login, avatar, token }).exec((err3, result) => {
+              if (err3) {
+                return res.status(400).json(err3).end();
+              }
+              const { name } = result;
+
+              return res.status(200).json({name}).end();
+            });
+          });
+        })({body: {id, service: 'github'}}, res, next);
+
+      }, (err4) => {
+        return res.status(400).json(err4).end();
+      });
     }, (error) => {
       return res.status(400).json(error).end();
     });

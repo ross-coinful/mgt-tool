@@ -22,7 +22,7 @@ export default {
       ApiClient.GET('/map', {
         params: { id }
       }).then((map) => {
-        commit('getMapSuc');
+        commit('getMapSuc', map);
         commit('setCardList', map.cards);
         commit('setReleaseList', map.releases);
       }, (error) => {
@@ -61,9 +61,10 @@ export default {
     getMap (state) {
       state.getMap = true;
     },
-    getMapSuc (state) {
+    getMapSuc (state, map) {
       state.getMap = false;
       state.getMapSuc = true;
+      state.map = map;
     },
     getMapErr (state, err) {
       state.getMap = false;

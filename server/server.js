@@ -7,8 +7,8 @@ const app = express();
 // app.use(cors());
 app.use(cors({
           credentials: true,
-          origin: 'http://localhost:8080' // web前端服务器地址
-          // origin: '*' // 这样会出错
+          origin: 'http://localhost:8080' // web前端服務器地址
+          // origin: '*' // 這樣會出錯
         }));
 app.use(bodyParser.json());
 
@@ -32,7 +32,9 @@ const User = new Schema({
     id: Number,
     name: String,
     service: String,
-    maps: Array
+    maps: Array,
+    token: String,
+    avatar: String
 }, {
     versionKey: false
 });
@@ -112,8 +114,7 @@ passport.use('login', new LocalStrategy({
       } else {
         const user = {
           id: username,
-          service: password,
-          name: req.body.name
+          service: password
         };
 
         new UserModel(user).save((err, result) => {
@@ -141,11 +142,15 @@ const auth = require('./auth');
 const card = require('./card');
 const release = require('./release');
 const map = require('./map');
+const repo = require('./repo');
+const user = require('./user');
 
 app.use('/auth', auth(passport, isAuthenticated));
 app.use('/card', card(passport, isAuthenticated));
 app.use('/release', release(passport, isAuthenticated));
 app.use('/map', map(passport, isAuthenticated));
+app.use('/repo', repo(passport, isAuthenticated));
+app.use('/user', user(passport, isAuthenticated));
 
 app.listen(port, () => {
   console.log('==>Server is running on port %s', port);

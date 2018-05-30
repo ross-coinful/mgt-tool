@@ -26,6 +26,11 @@ METHODS.forEach((method) => {
     .then((response) => {
       resolve(response.data);
     }, (error) => {
+
+      if (error.response.status === 401) {
+        localStorage.removeItem('isLogin');
+        window.location.href = '/login';
+      }
       reject(error);
     });
   });

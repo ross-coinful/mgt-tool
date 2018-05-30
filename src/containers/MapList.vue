@@ -64,7 +64,6 @@
 </template>
 
 <script>
-
 export default {
   name: 'MapList',
   data () {
@@ -78,22 +77,6 @@ export default {
   computed: {
     mapList () {
       return this.$store.state.map.mapList;
-    },
-    user () {
-      return this.$store.state.auth.user;
-    }
-  },
-  created () {
-    if (this.user) {
-      this.$store.dispatch('getMapList');
-    }
-  },
-  watch: {
-    user (newValue, oldValue) {
-      if (newValue && !oldValue) {
-        console.log('hehehe');
-        this.$store.dispatch('getMapList');
-      }
     }
   },
   methods: {
@@ -101,7 +84,6 @@ export default {
       this.$router.push(`/map/${event.currentTarget.dataset.id}`);
     },
     save () {
-
       if (this.name) {
         this.$store.dispatch('addMap', {name: this.name, desc: this.desc});
         this.isOpen = false;
@@ -110,7 +92,6 @@ export default {
       }
     },
     visiableChange (isOpen) {
-
       if (isOpen) {
         this.name = '';
         this.desc = '';

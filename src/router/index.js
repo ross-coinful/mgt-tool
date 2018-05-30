@@ -36,18 +36,18 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
+  const isLogin = localStorage.getItem('isLogin');
 
   if (to.meta.requireAuth) {
 
-    if (token) {
+    if (isLogin) {
       next();
     } else {
       next({
         path: '/login'
       });
     }
-  } else if (to.fullPath === '/login' && token) {
+  } else if (to.fullPath === '/login' && isLogin) {
     next({
       path: '/'
     });

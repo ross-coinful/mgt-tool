@@ -90,7 +90,7 @@ export default {
   },
   computed: {
     style () {
-      return 'width: ' + this.width + 'px';
+      return 'min-width: ' + this.width + 'px';
     },
     setClass () {
       return `task-board board ${this.isShrink ? 'shrink' : ''}`;

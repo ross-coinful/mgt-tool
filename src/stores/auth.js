@@ -2,32 +2,26 @@ import ApiClient from '../helpers/ApiClient';
 
 export default {
   state: {
-    getTokenSuc: false,
+    loginSuc: false,
     logoutSuc: false,
     token: null,
     user: null
   },
   actions: {
-    getToken ({ commit }, code) {
-      commit('getToken');
+    login ({ commit }, code) {
+      commit('login');
 
       ApiClient.GET(`/auth/token/${code}`)
       .then((response) => {
-        commit('getTokenSuc', response);
+        commit('loginSuc', response);
       }, (error) => {
-        commit('getTokenErr', error);
+        commit('loginErr', error);
       });
     },
     getUser ({ commit }) {
       commit('getUser');
-      const token = localStorage.getItem('token');
-      console.log('token', token);
 
-      ApiClient.GET('/auth/user', {
-        params: {
-          token
-        }
-      })
+      ApiClient.GET('/user')
       .then((response) => {
         commit('getUserSuc', response);
       }, (error) => {
@@ -48,18 +42,20 @@ export default {
   getters: {
   },
   mutations: {
-    getToken (state) {
-      state.getToken = true;
+    login (state) {
+      state.login = true;
     },
-    getTokenSuc (state, token) {
-      state.getToken = false;
-      state.getTokenSuc = true;
+    loginSuc (state, user) {
+      state.login = false;
+      state.loginSuc = true;
+      state.user = user;
 
-      localStorage.setItem('token', token);
+      console.log('user', user);
+      localStorage.setItem('isLogin', true);
     },
-    getTokenErr (state, err) {
-      state.getToken = false;
-      state.getTokenErr = err;
+    loginErr (state, err) {
+      state.login = false;
+      state.loginErr = err;
     },
     getUser (state) {
       state.getUser = true;
@@ -67,7 +63,6 @@ export default {
     getUserSuc (state, user) {
       state.getUser = false;
       state.getUserSuc = true;
-      console.log('user', user);
       state.user = user;
     },
     getUserErr (state, err) {
@@ -82,22 +77,11 @@ export default {
       state.logout = false;
       state.logoutSuc = true;
 
-      localStorage.removeItem('token');
+      localStorage.removeItem('isLogin');
     },
     logoutErr (state, err) {
       state.logout = false;
       state.logoutErr = err;
     }
-    // addUser (state) {
-    //   state.addUser = true;
-    // },
-    // addUserSuc (state, user) {
-    //   state.addUser = false;
-    //   state.addUserSuc = true;
-    // },
-    // addUserErr (state, err) {
-    //   state.addUser = false;
-    //   state.addUserErr = err;
-    // },
   }
 };

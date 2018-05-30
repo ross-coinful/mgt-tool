@@ -4,7 +4,7 @@
       <span v-if="$route.path !== '/'" class="btn back-page" @click="backPrevPage">
         <Icon type="ios-arrow-left" size="30"></Icon>
       </span>
-      <h2 class="header-text">Header</h2>
+      <h2 class="header-text">{{ headerName }}</h2>
 
       <div v-if="$route.path !== '/'" class="tool-bar">
         <span class="zoom">
@@ -27,11 +27,11 @@
           </span>
         </span>
 
-        <span class="btn circle-border" @click="backPrevPage">
+        <span class="btn circle-border" data_type="filter-search" @click="openToolPanel">
           <Icon type="funnel" size="15"></Icon>
         </span>
 
-        <span class="btn circle-border" @click="backPrevPage">
+        <span class="btn circle-border" data_type="add-member" @click="openToolPanel">
           <Icon type="person-add" size="15"></Icon>
         </span>
       </div>
@@ -49,6 +49,25 @@
         </DropdownMenu>
       </Dropdown>
     </div>
+
+    <div class="tool-panel" :style="widthStyle">
+      <span class="btn circle-border" @click="closeToolPanel">
+        <Icon type="chevron-right" size="15"></Icon>
+      </span>
+      <div v-if="activePanel === 'filter-search'" class="tool-box">
+        <h3 class="title">Search & filter</h3>
+        <input type="text" />
+      </div>
+      <div v-else class="tool-box">
+        <h3 class="title">Add member</h3>
+        <div v-for="user in userList" :key="user.id" class="user">
+          <!-- <span class="photo">RL</span> -->
+          <img class="photo" :src="user.avatar" />
+          <span class="name">{{ user.name }}</span>
+        </div>
+      </div>
+    </div>
+
     <router-view :style="zoomStyle"/>
   </div>
 </template>
@@ -63,8 +82,12 @@ export default {
   name: 'App',
   store,
   created () {
-    if (localStorage.getItem('token')) {
+
+    if (localStorage.getItem('isLogin')) {
       this.$store.dispatch('getUser');
+      this.$store.dispatch('getMapList');
+      this.$store.dispatch('getRepoList');
+      this.$store.dispatch('getUserList');
     }
 
     ['In', 'Out'].forEach((type) => {
@@ -75,16 +98,39 @@ export default {
     username () {
       const { user } = this.$store.state.auth;
 
-      return user ? user.name : 'Account';
+      return user ? user.name : '';
+    },
+    headerName () {
+      const { map } = this.$store.state.map;
+
+      return map && this.$route.path !== '/' ? map.name : '';
+    },
+    userList () {
+      return this.$store.state.userList.userList;
+    },
+    isLogin () {
+      return this.$store.state.auth.loginSuc;
     },
     isLogout () {
       return this.$store.state.auth.logoutSuc;
     },
     zoomStyle () {
-      return (this.$route.path).indexOf('map') !== -1 ? `zoom: ${this.zoomLevel * 100}%` : '';
+
+      if ((this.$route.path).indexOf('map') === -1) {
+        return '';
+      }
+      const style = `zoom: ${this.zoomLevel * 100}%;`;
+
+      if (this.activePanel !== '') {
+        return `${style} width: calc(100% - 400px)`;
+      }
+      return style;
     },
     zoomerStyle () {
       return `left: ${this.zoomerPos + (this.zoomLevel - 1) * 100}px`;
+    },
+    widthStyle () {
+      return this.activePanel !== '' ? 'width: 400px' : 'width: 0px';
     }
   },
   watch: {
@@ -93,12 +139,25 @@ export default {
       if (newValue && !oldValue) {
         this.$router.push('/login');
       }
+    },
+    isLogin (newValue, oldValue) {
+
+      if (newValue && !oldValue) {
+        this.$router.push('/');
+        this.$store.dispatch('getMapList');
+        this.$store.dispatch('getRepoList');
+        this.$store.dispatch('getUserList');
+      }
+    },
+    $route (to, from) {
+        this.activePanel = '';
     }
   },
   data () {
     return {
       zoomLevel: 1,
-      zoomerPos: 49
+      zoomerPos: 49,
+      activePanel: ''
     };
   },
   methods: {
@@ -147,6 +206,12 @@ export default {
     zoomEnd () {
       window.removeEventListener('mousemove', this.zoomMove);
       window.removeEventListener('mouseup', this.zoomEnd);
+    },
+    openToolPanel (e) {
+      this.activePanel = e.currentTarget.getAttribute('data_type');
+    },
+    closeToolPanel () {
+      this.activePanel = '';
     }
   }
 };
@@ -154,15 +219,15 @@ export default {
 
 <style lang="scss" scoped>
 #app {
+  position: relative;
   display: flex;
   flex-direction: column;
+  width: 100vw;
   height: 100vh;
   overflow: hidden;
 }
 
 .header {
-  // position: absolute;
-  // top: 0;
   display: flex;
   align-items: center;
   width: 100%;
@@ -261,6 +326,58 @@ export default {
 
 .account-name {
   margin: 0 5px;
+}
+
+.tool-panel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  height: calc(100vh - 60px);
+  background-color: #fff;
+  color: #000;
+  transition: width .8s;
+  .circle-border {
+    position: absolute;
+    top: 18px;
+    left: 20px;
+    width: 30px;
+    height: 30px;
+    color: #efefef;
+    border-color: #efefef;
+    &:hover {
+      color: #66bae1;
+      border-color: #66bae1;
+    }
+  }
+}
+
+.tool-box {
+  padding: 10px 20px;
+  text-align: left;
+  .title {
+    padding-left: 38px;
+    font-size: 30px;
+    font-weight: normal;
+    color: #66bae1;
+  }
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  margin-top: 10px;
+  .photo {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+  }
+  .name {
+    margin-left: 8px;
+    font-size: 16px;
+    line-height: 30px;
+  }
 }
 </style>
 
