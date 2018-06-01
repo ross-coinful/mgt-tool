@@ -61,7 +61,12 @@
       <div v-else class="tool-box">
         <h3 class="title">Add member</h3>
         <div v-for="user in userList" :key="user.id" class="user">
-          <!-- <span class="photo">RL</span> -->
+          <span v-if="user.maps.indexOf(mapId) === -1" class="add-btn" :data_id="user.id" @click="addMember">
+            <Icon type="ios-plus-outline" size="15"></Icon>
+          </span>
+          <span v-else class="add-btn" :data_id="user.id" @click="removeMember">
+            <Icon type="ios-minus-outline" size="15"></Icon>
+          </span>
           <img class="photo" :src="user.avatar" />
           <span class="name">{{ user.name }}</span>
         </div>
@@ -77,6 +82,7 @@ import io from 'socket.io-client';
 import store from './stores';
 import { mapActions } from 'vuex';
 import { lowerFirstChar } from './utils';
+import ApiClient from './helpers/ApiClient';
 
 export default {
   name: 'App',
@@ -84,10 +90,7 @@ export default {
   created () {
 
     if (localStorage.getItem('isLogin')) {
-      this.$store.dispatch('getUser');
-      this.$store.dispatch('getMapList');
-      this.$store.dispatch('getRepoList');
-      this.$store.dispatch('getUserList');
+      this.getInitialData();
     }
 
     ['In', 'Out'].forEach((type) => {
@@ -96,7 +99,7 @@ export default {
   },
   computed: {
     username () {
-      const { user } = this.$store.state.auth;
+      const { user } = this.$store.state.user;
 
       return user ? user.name : '';
     },
@@ -105,8 +108,13 @@ export default {
 
       return map && this.$route.path !== '/' ? map.name : '';
     },
+    mapId () {
+      const { map } = this.$store.state.map;
+
+      return map ? map._id : null;
+    },
     userList () {
-      return this.$store.state.userList.userList;
+      return this.$store.getters.userList;
     },
     isLogin () {
       return this.$store.state.auth.loginSuc;
@@ -144,9 +152,7 @@ export default {
 
       if (newValue && !oldValue) {
         this.$router.push('/');
-        this.$store.dispatch('getMapList');
-        this.$store.dispatch('getRepoList');
-        this.$store.dispatch('getUserList');
+        this.getInitialData();
       }
     },
     $route (to, from) {
@@ -170,6 +176,12 @@ export default {
       this.socket.on('test', (obj) => {
         console.log('socketConnect', obj);
       });
+    },
+    getInitialData () {
+      this.$store.dispatch('getUser');
+      this.$store.dispatch('getMapList');
+      this.$store.dispatch('getRepoList');
+      this.$store.dispatch('getUserList');
     },
     backPrevPage () {
       this.$router.go(-1);
@@ -212,6 +224,34 @@ export default {
     },
     closeToolPanel () {
       this.activePanel = '';
+    },
+    addMember (e) {
+      const data = {
+        mapId: this.mapId,
+        userId: e.currentTarget.getAttribute('data_id')
+      };
+
+      ApiClient.PATCH('/user/map', {
+        data
+      }).then((rsponese) => {
+        this.$store.dispatch('getUserList');
+      }, (error) => {
+        console.log('addMember failed', error);
+      });
+    },
+    removeMember (e) {
+      const data = {
+        mapId: this.mapId,
+        userId: e.currentTarget.getAttribute('data_id')
+      };
+
+      ApiClient.DELETE('/user/map', {
+        data
+      }).then((rsponese) => {
+        this.$store.dispatch('getUserList');
+      }, (error) => {
+        console.log('removeMember failed', error);
+      });
     }
   }
 };
@@ -369,6 +409,14 @@ export default {
   align-items: center;
   height: 30px;
   margin-top: 10px;
+  .add-btn {
+    margin-right: 8px;
+    color: #bbb;
+    &:hover {
+      color: #66bae1;
+      cursor: pointer;
+    }
+  }
   .photo {
     display: inline-block;
     width: 30px;

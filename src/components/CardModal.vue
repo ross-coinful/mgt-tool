@@ -150,6 +150,8 @@ export default {
       this.$Modal.confirm({
         title: 'Confirmation',
         content,
+        okText: 'ok',
+        cancelText: 'cancel',
         onOk: () => {
           dispatch('deleteCard', id);
           dispatch('closeCard');

@@ -131,7 +131,6 @@ passport.use('login', new LocalStrategy({
 function isAuthenticated (req, res, next) {
 
   if (req.isAuthenticated()) {
-    console.log('is auth');
     return next();
   }
   return res.status(401).end();

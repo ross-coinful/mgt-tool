@@ -5,9 +5,20 @@ export default {
     getUserList: false,
     getUserListSuc: false,
     getUserListErr: false,
+    user: null,
     userList: []
   },
   actions: {
+    getUser ({ commit }) {
+      commit('getUser');
+
+      ApiClient.GET('/user')
+      .then((response) => {
+        commit('getUserSuc', response);
+      }, (error) => {
+        commit('getUserErr', error);
+      });
+    },
     getUserList ({commit}) {
       commit('getUserList');
 
@@ -19,7 +30,28 @@ export default {
       });
     }
   },
+  getters: {
+    userList: (state) => {
+
+      if (state.userList.length) {
+        return state.userList.filter((user) => user.id !== state.user.id);
+      }
+      return state.userList;
+    }
+  },
   mutations: {
+    getUser (state) {
+      state.getUser = true;
+    },
+    getUserSuc (state, user) {
+      state.getUser = false;
+      state.getUserSuc = true;
+      state.user = user;
+    },
+    getUserErr (state, err) {
+      state.getUser = false;
+      state.getUserErr = err;
+    },
     getUserList (state) {
       state.getUserList = true;
       state.getUserListSuc = false;

@@ -6,7 +6,7 @@ import release from './release';
 import auth from './auth';
 import map from './map';
 import repoList from './repoList';
-import userList from './userList';
+import user from './user';
 
 Vue.use(Vuex);
 
@@ -18,6 +18,6 @@ export default new Vuex.Store({
     auth,
     map,
     repoList,
-    userList
+    user
   }
 });

@@ -26,6 +26,10 @@ module.exports = function (passport, isAuthenticated) {
         return res.status(400).json(err).end();
       }
 
+      if (req.user.maps.indexOf(story._id) === -1) {
+        return res.status(403).end();
+      }
+
       data = story;
 
       const findCard = new Promise((resolve, reject) => Card.find({_id: {$in: data.cards}}, {'_id': false}).exec((err, cards) => {

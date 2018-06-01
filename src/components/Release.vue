@@ -171,6 +171,8 @@ export default {
       this.$Modal.confirm({
         title: 'Confirmation',
         content: content,
+        okText: 'ok',
+        cancelText: 'cancel',
         onOk: () => {
 
           if (subtasks.length) {

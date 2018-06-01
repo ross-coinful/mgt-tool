@@ -86,4 +86,4 @@ module.exports = function (passport, isAuthenticated) {
     });
   });
   return router;
-}
+};

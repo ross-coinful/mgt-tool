@@ -55,9 +55,7 @@ module.exports = function (passport, isAuthenticated) {
               if (err3) {
                 return res.status(400).json(err3).end();
               }
-              const { name } = result;
-
-              return res.status(200).json({name}).end();
+              return res.status(200).end();
             });
           });
         })({body: {id, service: 'github'}}, res, next);
