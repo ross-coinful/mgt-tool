@@ -17,7 +17,7 @@
 
 <script>
 import store from '../stores';
-import { clientId, state } from '../../data';
+import { clientId, state, scope } from '../../data';
 
 export default {
   name: 'Login',
@@ -38,7 +38,7 @@ export default {
     login () {
       this.loading = true;
 
-      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user&state=${state}`;
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=${scope}&state=${state}`;
     }
   },
   created () {

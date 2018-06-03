@@ -71,7 +71,7 @@ export default {
     updateCardPos ({ commit }, data) {
       commit('updateCardPos', data);
 
-      ApiClient.PATCH('/card', {
+      ApiClient.PATCH('/card/pos', {
         data
       }).then((response) => {
         console.log('updateCardPos suc');
@@ -257,11 +257,8 @@ export default {
       state.updateCardSuc = true;
 
       const newCardList = state.cardList.slice();
-
-      data.forEach((value) => {
-        const _card = newCardList.find(card => card.id === value.id);
-        Object.assign(_card, value);
-      });
+      const _card = newCardList.find(card => card.id === data.id);
+      Object.assign(_card, data);
 
       state.cardList = newCardList;
     },

@@ -158,7 +158,7 @@ export default {
         <div>
           <p>There are subtasks associated with this release.<br />Do you want to</p>
           <div>
-            <label><input type="radio" name="opt" value="unsceduled" checked/>leave them unsceduled, or</label>
+            <label><input type="radio" name="opt" value="unscheduled" checked/>leave them unscheduled, or</label>
           </div>
           <div>
             <label><input type="radio" name="opt" value="others" />move them to</label>
@@ -177,7 +177,7 @@ export default {
 
           if (subtasks.length) {
             const checkValue = document.querySelector('input[name="opt"]:checked').value;
-            const newReleaseId = checkValue === 'unsceduled' ? 0 : parseInt(document.getElementById('select').value, 10) || 0;
+            const newReleaseId = checkValue === 'unscheduled' ? 0 : parseInt(document.getElementById('select').value, 10) || 0;
 
             const parentIds = [];
             const updateDatas = subtasks.map(value => {
@@ -201,7 +201,7 @@ export default {
               }
             });
 
-            this.$store.dispatch('updateCard', updateDatas);
+            this.$store.dispatch('updateCardPos', updateDatas);
           }
           this.$store.dispatch('deleteRelease', this.releaseId);
         }

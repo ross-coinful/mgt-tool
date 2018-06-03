@@ -35,7 +35,7 @@ module.exports = function (passport, isAuthenticated) {
       .then((response) => {
         const { data: { id, login, avatar_url: avatar } } = response;
 
-        console.log('get user response', response);
+        // console.log('get user response', response);
         passport.authenticate('login', function (err, user, info) {
 
           if (err) {

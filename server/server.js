@@ -57,7 +57,12 @@ const Card = new Schema({
     prevId: Number,
     parentId: Number,
     releaseId: Number,
-    labelId: Number
+    labelId: Number,
+    issue: {
+      owner: String,
+      repo: String,
+      number: Number
+    }
 }, {
     versionKey: false
 });
@@ -143,6 +148,7 @@ const release = require('./release');
 const map = require('./map');
 const repo = require('./repo');
 const user = require('./user');
+const issue = require('./issue');
 
 app.use('/auth', auth(passport, isAuthenticated));
 app.use('/card', card(passport, isAuthenticated));
@@ -150,6 +156,7 @@ app.use('/release', release(passport, isAuthenticated));
 app.use('/map', map(passport, isAuthenticated));
 app.use('/repo', repo(passport, isAuthenticated));
 app.use('/user', user(passport, isAuthenticated));
+app.use('/issue', issue(passport, isAuthenticated));
 
 app.listen(port, () => {
   console.log('==>Server is running on port %s', port);
