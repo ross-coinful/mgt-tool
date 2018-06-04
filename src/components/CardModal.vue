@@ -18,17 +18,46 @@
         </div>
       </div>
       <div class="setting">
-        <div>
-          <label class="title">Add issue to</label>
-          <div class="checkbox-group">
-            <div
-              v-for="repo in repoList"
-              :key="repo.id"
-              :data_owner="repo.owner.login"
-              :data_repo="repo.name"
-              class="checkbox-container"
-              @click="checkChange"
-            >
+        <CustomDropdown title="Assigness">
+          <div
+            class="checkbox-container"
+            slot="menu"
+            v-for="member in memberList"
+            :key="member.id"
+            :data_id="member.id"
+            @click="changeActiveMember"
+          >
+            <DropdownItem>
+              <Icon
+                v-if="checkActiveMember(member.id)"
+                type="android-checkbox"
+                size="15"
+              ></Icon>
+              <Icon v-else type="android-checkbox-outline-blank" size="15"></Icon>
+              {{ member.name }}
+            </DropdownItem>
+          </div>
+          <span v-if="activeMember.length" slot="value">
+            <p v-for="id in activeMember" :key="id">
+              {{ memberList.find(value => value.id === id).name }}
+            </p>
+          </span>
+          <span v-else slot="value">
+            None yet
+          </span>
+        </CustomDropdown>
+
+        <CustomDropdown title="Repository">
+          <div
+            class="checkbox-container"
+            slot="menu"
+            v-for="repo in repoList"
+            :key="repo.id"
+            :data_owner="repo.owner.login"
+            :data_repo="repo.name"
+            @click="changeActiveRepo"
+          >
+            <DropdownItem>
               <Icon
                 v-if="checkActiveRepo(repo)"
                 type="android-checkbox"
@@ -36,9 +65,15 @@
               ></Icon>
               <Icon v-else type="android-checkbox-outline-blank" size="15"></Icon>
               {{ repo.full_name }}
-            </div>
+            </DropdownItem>
           </div>
-        </div>
+          <span v-if="activeRepo" slot="value">
+            {{ activeRepo.owner }}/{{ activeRepo.repo }}
+          </span>
+          <span v-else slot="value">
+            None yet
+          </span>
+        </CustomDropdown>
       </div>
     </div>
     <div slot="footer">
@@ -57,10 +92,14 @@
 import store from '../stores';
 import { lowerFirstChar } from '../utils';
 import ApiClient from '../helpers/ApiClient';
+import CustomDropdown from '@/components/CustomDropdown';
 
 export default {
   name: 'CardModal',
   store,
+  components: {
+    CustomDropdown
+  },
   computed: {
     getCardDetailSuc () {
       return this.$store.state.cardDetail.getCardDetailSuc;
@@ -70,6 +109,14 @@ export default {
     },
     repoList () {
       return this.$store.state.repoList.data;
+    },
+    memberList () {
+      const map = this.$store.state.map.map;
+
+      if (!map) {
+        return [];
+      }
+      return this.$store.getters.memberList(map._id);
     },
     card () {
       return this.$store.getters.card(this.$store.state.card.focusId);
@@ -99,7 +146,8 @@ export default {
         this.title = this.initialTitle;
         this.initialDetail = this.$store.state.cardDetail.data.detail;
         this.detail = this.initialDetail;
-        this.checkValue = this.$store.state.cardDetail.data.issue;
+        this.activeRepo = this.$store.state.cardDetail.data.issue;
+        this.activeMember = this.$store.state.cardDetail.data.members || [];
       }
     },
     updateCardSuc (newValue, oldValue) {
@@ -121,7 +169,8 @@ export default {
       detail: '',
       updateType: '',
       isSubtask: false,
-      checkValue: null
+      activeRepo: null, // {owner, repo}
+      activeMember: [] // [id]
     };
   },
   created () {
@@ -132,19 +181,25 @@ export default {
   },
   methods: {
     checkActiveRepo (data) {
-      if (!this.checkValue) {
+      if (!this.activeRepo) {
         return false;
       }
-      const { owner, repo } = this.checkValue;
+      const { owner, repo } = this.activeRepo;
 
       return owner === data.owner.login && repo === data.name;
     },
-    checkChange (e) {
+    checkActiveMember (userId) {
+      if (!this.activeMember.length) {
+        return false;
+      }
+      return this.activeMember.indexOf(userId) !== -1;
+    },
+    changeActiveRepo (e) {
       const owner = e.currentTarget.getAttribute('data_owner');
       const repo = e.currentTarget.getAttribute('data_repo');
 
       // 單選
-      this.checkValue = {
+      this.activeRepo = {
         owner,
         repo
       };
@@ -162,16 +217,24 @@ export default {
       }, (error) => {
         console.log('addIssue failed', error);
       });
+    },
+    changeActiveMember (e) {
       // 複選
-      // const _checkValue = this.checkValue.slice();
-      // const index = _checkValue.indexOf(value);
+      const id = parseInt(e.currentTarget.getAttribute('data_id'), 10);
+      const _activeMember = this.activeMember.slice();
+      const index = _activeMember.indexOf(id);
 
-      // if (index === -1) {
-      //   _checkValue.push(value);
-      // } else {
-      //   _checkValue.splice(index, 1);
-      // }
-      // this.checkValue = _checkValue;
+      if (index === -1) {
+        _activeMember.push(id);
+      } else {
+        _activeMember.splice(index, 1);
+      }
+      this.activeMember = _activeMember;
+
+      this.$store.dispatch('updateCard', {
+        id: this.$store.state.card.focusId,
+        members: _activeMember
+      });
     },
     toggleEdit (type, status) {
       const _type = lowerFirstChar(type);
@@ -264,18 +327,15 @@ export default {
 }
 
 .content {
-  width: 400px;
+  flex: 1;
 }
 
 .setting {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
   padding-left: 10px;
-  flex: 1;
   border-left: 1px dotted #000;
-}
-
-.setting .title {
-  font-size: 14px;
-  font-weight: bold;
 }
 
 .checkbox-container {

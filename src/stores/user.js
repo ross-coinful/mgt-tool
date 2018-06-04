@@ -34,9 +34,18 @@ export default {
     userList: (state) => {
 
       if (state.userList.length) {
-        return state.userList.filter((user) => user.id !== state.user.id);
+        return state.userList.filter(user => user.id !== state.user.id);
       }
       return state.userList;
+    },
+    memberList: (state) => (mapId) => {
+
+      if (state.userList.length) {
+        return state.userList.filter(user =>
+          user.maps.some(map => map === mapId)
+        );
+      }
+      return [state.user];
     }
   },
   mutations: {
