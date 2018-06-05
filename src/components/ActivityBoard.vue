@@ -1,5 +1,5 @@
 <template>
-  <div class="activity-board board">
+  <li class="activity-board board">
     <div v-if="isShrink" class="shrink-card">
       <span @click="expandCard">
         <Icon type="plus" size="16"></Icon>
@@ -26,7 +26,7 @@
       </draggable>
     </div>
 
-  </div>
+  </li>
 </template>
 
 <script>

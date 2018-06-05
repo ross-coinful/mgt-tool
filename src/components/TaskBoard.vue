@@ -1,5 +1,5 @@
 <template>
-  <div :class="setClass" :style="style">
+  <li :class="setClass" :style="style">
     <div v-if="!isShrink" class="board-body">
       <div v-for="(id, index) in taskCardIds" class="subtask-list" :key="id">
         <div v-if="displaySpace(index)" style="width: 128px;height: 100%">
@@ -31,7 +31,7 @@
         </draggable>
       </div>
     </div>
-  </div>
+  </li>
 </template>
 
 <script>
@@ -133,8 +133,8 @@ export default {
 }
 
 .task-board {
-  display: flex;
-  flex-direction: column;
+  /*display: flex;*/
+  /*flex-direction: column;*/
   min-height: 94px;
 }
 

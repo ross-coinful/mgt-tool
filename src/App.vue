@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <router-view :style="zoomStyle"/>
+    <router-view :style="zoomStyle" :totalWidth="totalWidth"/>
   </div>
 </template>
 
@@ -163,7 +163,8 @@ export default {
     return {
       zoomLevel: 1,
       zoomerPos: 49,
-      activePanel: ''
+      activePanel: '',
+      totalWidth: ''
     };
   },
   methods: {
@@ -186,7 +187,15 @@ export default {
     backPrevPage () {
       this.$router.go(-1);
     },
+    calcTotalWidth () {
+      const storyMapWidth = document.getElementsByClassName('story-map')[0].clientWidth;
+      const totalWidth = this.$store.state.card.boardWidths.reduce((accumulator, currentValue) => accumulator + currentValue) + 135;
+      console.log('hahhahaa', storyMapWidth);
+
+      this.totalWidth = 'min-width:' + Math.max(storyMapWidth, totalWidth) + 'px';
+    },
     zoom (type) { // range: -5 ~ 5
+      this.calcTotalWidth();
       const _type = lowerFirstChar(type);
 
       if (_type === 'in' && this.zoomLevel < 1.5) {
@@ -216,6 +225,7 @@ export default {
       }
     },
     zoomEnd () {
+      this.calcTotalWidth();
       window.removeEventListener('mousemove', this.zoomMove);
       window.removeEventListener('mouseup', this.zoomEnd);
     },

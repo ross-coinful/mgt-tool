@@ -1,5 +1,5 @@
 <template>
-  <div :class="boardBodyClass" :style="noBorder">
+  <li :class="boardBodyClass" :style="noBorder">
     <div class="new-card" :style="style" @mouseover="show = true" @mouseout="show = false">
       <div v-if="isCreate" :class="setClass">
         <textarea v-model="title" v-focus @blur="saveCard" autofocus></textarea>
@@ -10,7 +10,7 @@
         </span>
       </div>
     </div>
-  </div>
+  </li>
 </template>
 
 <script>
@@ -43,7 +43,7 @@ export default {
   store,
   computed: {
     boardBodyClass () {
-      return `${this.type === 'activity' ? 'board-body' : ''}`;
+      return `${this.type === 'activity' ? 'board-body board' : ''}`;
     },
     setClass () {
       return `card ${this.isFocus ? 'focus' : ''} ${this.type}-card`;
@@ -121,7 +121,7 @@ export default {
         callback: function () {
           this.isCreate = false;
           this.title = '';
-        }.bind(this)
+        }.bind(this),
       });
     }
   },
@@ -139,6 +139,7 @@ export default {
 <style scoped>
 .board-body {
   padding-right: 3px; /* 4px - 1px border*/
+  width: 99%; /*display:table-cell fill remaining width*/
 }
 
 .new-card {

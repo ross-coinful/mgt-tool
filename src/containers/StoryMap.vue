@@ -1,8 +1,8 @@
 <template>
 
-  <div class="story-map">
+  <div class="story-map" ref="storyMap">
 
-    <div class="activity-board-container board-list list-container">
+    <ul class="activity-board-container board-list list-container" :style="totalWidth">
       <ActivityBoard
         v-for="(id, index) in activityCardIds"
         :isShrink="isCardShrink(id)"
@@ -15,19 +15,20 @@
       </ActivityBoard>
 
       <NewCard type="activity" :activityNumber="activityCardIds.length" />
-    </div>
+    </ul>
 
     <!-- 只有在add a release above the unscheduled, 且 unscheduled order = 0 -->
     <div
       v-if="createReleaseIndex === -1"
       class="board-list list-container"
+      :style="totalWidth"
     >
       <div class="release-title">
         <input class="input" v-model="title" type="text" @blur="addRelease" autofocus />
       </div>
     </div>
 
-    <div class="task-board-container">
+    <div class="task-board-container" :style="totalWidth">
       <div class="release-row" v-for="(release, releaseIndex) in releaseList" :key="release.id">
         <Release
           :releaseId="release.id"
@@ -36,7 +37,7 @@
           :setCreateReleasePos="setCreateReleasePos"
           :isShrink="isReleaseShrink(release.id)"
         />
-        <div class="board-list list-container">
+        <ul class="board-list list-container">
           <TaskBoard
             v-if="!isCardShrink(activityCardIds[index])"
             v-for="(width, index) in boardWidths"
@@ -52,14 +53,14 @@
             :onEnd="onEnd"
             :onMove="onMove">
           </TaskBoard>
-          <div v-else class="board" style="width: 36px"></div>
-        </div>
+          <li v-else class="board" style="width: 36px"></li>
+        </ul>
 
-        <div
+        <ul
           v-if="releaseIndex === createReleaseIndex"
           class="board-list list-container"
         >
-          <div class="release-title">
+          <li class="release-title">
             <input
               class="input"
               v-model="title"
@@ -68,8 +69,8 @@
               @focus="$event.target.select()"
               v-focus="isFocus"
             />
-          </div>
-        </div>
+          </li>
+        </ul>
 
       </div>
     </div>
@@ -89,6 +90,12 @@ import { mapGetters } from 'vuex';
 
 export default {
   name: 'StoryMap',
+  props: {
+    totalWidth: {
+      type: String,
+      required: true
+    }
+  },
   store,
   computed: {
     ...mapGetters([
@@ -109,8 +116,6 @@ export default {
     const mapId = this.$router.currentRoute.params.id;
 
     this.$store.dispatch('getMap', mapId);
-    // this.$store.dispatch('getCardList', mapId);
-    // this.$store.dispatch('getReleaseList', mapId);
   },
   components: {
     ActivityBoard,
@@ -382,21 +387,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
-// .story-map,
-// .task-board-container {
-//   display: flex;
-//   flex-direction: column;
-// }
-
-// .story-map,
-// .task-board-container,
-// .release-row:last-child {
-//   flex: 1;
-// }
-
 .story-map {
   flex: 1;
-  width: 100%;
+  max-width: 100%;
   overflow-y: hidden;
   text-align: left;
   transition: width .8s;
@@ -407,14 +400,17 @@ export default {
 }
 
 .task-board-container {
-  display: inline-block;
   height: calc(100% - 180px);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
+.release-row {
+  margin-top: 4px;
+  background-color: #efefef;
+}
+
 .list-container {
-  margin-bottom: 4px;
   background-color: #efefef;
 }
 
@@ -424,13 +420,6 @@ export default {
 
 .board-list .board {
   display: table-cell;
-}
-
-.release-row:last-child {
-  height: 100%;
-  .board-list {
-    height: calc(100% - 25px);
-  }
 }
 </style>
 
