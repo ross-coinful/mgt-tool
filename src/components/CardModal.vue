@@ -1,22 +1,37 @@
 <template>
   <Modal
     v-model="$store.state.card.isOpen"
-    title="Card"
-    width="700"
-    ok-text="add comment"
+    width="800"
     @on-visible-change="visiableChange">
     <div class="modal-body">
+      <div class="card-title">
+        <p class="display" v-if="!isFocusTitle" @click="focusTitle" v-html="cardTitle"></p>
+        <textarea class="input" v-else v-model="title" @blur="blurTitle" v-focus="isFocusTitle"></textarea>
+      </div>
       <div class="content">
-        <div class="card-title">
-          <p class="display" v-if="!isFocusTitle" @click="focusTitle">{{ cardTitle }}</p>
-          <input class="input" v-else v-model="title" type="text" @blur="blurTitle" v-focus="isFocusTitle" />
-        </div>
-
-        <div class="detail">
-          <p class="display" v-if="!isFocusDetail" @click="focusDetail">{{ cardDetail }}</p>
+        <div class="card-detail">
+          <p class="box-name">Description:</p>
+          <p class="display" v-if="!isFocusDetail" @click="focusDetail" v-html="cardDetail"></p>
           <textarea class="input" v-else v-model="detail" @blur="blurDetail" v-focus="isFocusDetail"></textarea>
         </div>
+
+        <Comment
+          v-for="comment in comments"
+          :id="comment.id"
+          :avatar="comment.avatar"
+          :user="comment.user"
+          :time="comment.time"
+          :body="comment.body"
+          :key="comment.id"
+        />
+
+        <div class="comment write-comment">
+          <img class="avatar" :src="avatar" />
+          <textarea class="comment-input" v-model="comment" placeholder="Leave a comment"></textarea>
+        </div>
+        <Button type="success" class="comment-btn" :disabled="comment === ''" @click="addComment">Comment</Button>
       </div>
+
       <div class="setting">
         <CustomDropdown title="Assigness">
           <div
@@ -42,7 +57,7 @@
               {{ memberList.find(value => value.id === id).name }}
             </p>
           </span>
-          <span v-else slot="value">
+          <span class="placeholder" v-else slot="value">
             None yet
           </span>
         </CustomDropdown>
@@ -70,12 +85,13 @@
           <span v-if="activeRepo" slot="value">
             {{ activeRepo.owner }}/{{ activeRepo.repo }}
           </span>
-          <span v-else slot="value">
+          <span class="placeholder" v-else slot="value">
             None yet
           </span>
         </CustomDropdown>
       </div>
     </div>
+
     <div slot="footer">
       <Button type="text">add comment</Button>
       <span class="link-btn-separator">&nbsp;|&nbsp;</span>
@@ -90,17 +106,30 @@
 
 <script>
 import store from '../stores';
-import { lowerFirstChar } from '../utils';
+import { lowerFirstChar, timeFormatter } from '../utils';
 import ApiClient from '../helpers/ApiClient';
 import CustomDropdown from '@/components/CustomDropdown';
+import Comment from '@/components/Comment';
 
 export default {
   name: 'CardModal',
   store,
   components: {
-    CustomDropdown
+    CustomDropdown,
+    Comment
+  },
+  created () {
+    ['Title', 'Detail'].forEach((type) => {
+      this[`focus${type}`] = () => this.toggleEdit(type, true);
+      this[`blur${type}`] = () => this.toggleEdit(type, false);
+    });
   },
   computed: {
+    avatar () {
+      const { user } = this.$store.state.user;
+
+      return user ? user.avatar : '';
+    },
     getCardDetailSuc () {
       return this.$store.state.cardDetail.getCardDetailSuc;
     },
@@ -109,6 +138,24 @@ export default {
     },
     repoList () {
       return this.$store.state.repoList.data;
+    },
+    comments () {
+      if (this.card && this.card.comments) {
+        return this.card.comments.map((comment) => {
+          const user = this.memberList.find(value => value.id === comment.userId);
+
+          return {
+            id: comment.id,
+            avatar: user.avatar,
+            user: user.name,
+            time: timeFormatter(comment.time),
+            body: comment.body
+          };
+        });
+      }
+
+      console.log('triggeer', this.card);
+      return [];
     },
     memberList () {
       const map = this.$store.state.map.map;
@@ -123,7 +170,7 @@ export default {
     },
     cardTitle: {
       get () {
-        return this.title || 'Click to add title.';
+        return this.title || '<span class="placeholder">Click to add title...</span>';
       },
       set (value) {
         this.title = value;
@@ -131,7 +178,7 @@ export default {
     },
     cardDetail: {
       get () {
-        return this.detail || 'Click to add detail.';
+        return this.detail || '<span class="placeholder">Click to add detail...</span>';
       },
       set (value) {
         this.detail = value;
@@ -140,7 +187,6 @@ export default {
   },
   watch: {
     getCardDetailSuc (newValue, oldValue) {
-
       if (newValue && !oldValue) {
         this.initialTitle = this.$store.state.cardDetail.data.title;
         this.title = this.initialTitle;
@@ -151,13 +197,17 @@ export default {
       }
     },
     updateCardSuc (newValue, oldValue) {
-
       if (newValue && !oldValue && this.updateType) {
-        const type = this.updateType;
-        const _type = type.charAt(0).toLowerCase() + type.slice(1);
-        console.log('reset');
-        this[`initial${type}`] = this[_type];
-        this.updateType = '';
+
+        if (this.updateType === 'comment') {
+          this.comment = '';
+        } else {
+          const type = this.updateType;
+          const _type = type.charAt(0).toLowerCase() + type.slice(1);
+
+          this[`initial${type}`] = this[_type];
+          this.updateType = '';
+        }
       }
     }
   },
@@ -167,17 +217,12 @@ export default {
       isFocusDetail: false,
       title: '',
       detail: '',
+      comment: '',
       updateType: '',
       isSubtask: false,
       activeRepo: null, // {owner, repo}
       activeMember: [] // [id]
     };
-  },
-  created () {
-    ['Title', 'Detail'].forEach((type) => {
-      this[`focus${type}`] = () => this.toggleEdit(type, true);
-      this[`blur${type}`] = () => this.toggleEdit(type, false);
-    });
   },
   methods: {
     checkActiveRepo (data) {
@@ -236,6 +281,18 @@ export default {
         members: _activeMember
       });
     },
+    addComment () {
+      const { comments } = this.card;
+      const commentId = comments ? comments[comments.length - 1].id + 1 : 0;
+
+      this.$store.dispatch('updateCard', {
+        id: this.$store.state.card.focusId,
+        body: this.comment,
+        commentId
+      });
+
+      this.updateType = 'comment';
+    },
     toggleEdit (type, status) {
       const _type = lowerFirstChar(type);
 
@@ -290,7 +347,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
 .display {
   cursor: pointer;
 }
@@ -299,35 +356,47 @@ export default {
   width: 100%;
   height: 100%;
   border: 1px dotted #aaa;
-  outline: 0;
 }
 
 .card-title {
-  margin-bottom: 20px;
+  width: 100%;
+  padding-bottom: 20px;
+  margin-top: 20px;
+  border-bottom: 1px solid #d1d5da;
+  .input,
+  .display {
+    color: #282828;
+    font-weight: bold;
+    font-size: 18px;
+  }
 }
 
-.card-title .display {
-  color: #282828;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.detail,
-.detail .input {
-  min-height: 160px;
-}
-
-.detail .display {
-  color: #282828;
+.card-detail {
+  padding: 16px 0;
+  border-bottom: 1px solid #d1d5da;
   font-size: 14px;
+  .box-name {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
 }
 
 .modal-body {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .content {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  padding-right: 16px;
+  height: 400px;
+  overflow-y: auto;
+  .ivu-btn {
+    margin-top: 10px;
+    margin-left: auto;
+  }
 }
 
 .setting {
@@ -364,5 +433,62 @@ export default {
 
 .ivu-checkbox-group-item {
   width: 100%;
+}
+
+.write-comment .comment-input {
+  min-height: 100px;
+  width: 500px;
+}
+
+.comment-btn {
+  min-height: 40px;
+  margin-left: auto;
+  margin-top: 8px;
+}
+</style>
+
+<style lang="scss">
+.placeholder {
+  color: #bbb;
+}
+.comment {
+  position: relative;
+  margin-top: 16px;
+  .member {
+    font-weight: bold;
+  }
+  .avatar {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    float: left;
+  }
+  .comment-input,
+  .comment-box {
+    width: 500px;
+    float: right;
+  }
+
+  .comment-info {
+    position: relative;
+    padding-left: 5px;
+    line-height: 25px;
+    background-color: #f6f8fa;
+    border: 1px solid #d1d5da;
+    border-bottom: 0;
+  }
+  .comment-content {
+    padding: 5px;
+    border: 1px solid #d1d5da;
+  }
+  .comment-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d1d5da;
+    border-bottom: 1px dashed #dfe2e5;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-radius: 3px;
+  }
 }
 </style>

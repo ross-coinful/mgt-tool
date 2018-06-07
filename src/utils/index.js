@@ -22,7 +22,24 @@ function lowerFirstChar (word) {
   return word.charAt(0).toLowerCase() + word.slice(1);
 }
 
+function padZero (n) {
+  return (n < 10) ? `0${n}` : n;
+}
+
+function timeFormatter (timestamp) {
+  const time = new Date(timestamp);
+  const year = time.getFullYear();
+  const month = padZero(time.getMonth() + 1);
+  const date = padZero(time.getDate());
+  const hour = padZero(time.getHours());
+  const minute = padZero(time.getMinutes());
+  const second = padZero(time.getSeconds());
+
+  return `${year}-${month}-${date} ${hour}:${minute}:${second}`;
+}
+
 module.exports = {
   sortList,
-  lowerFirstChar
+  lowerFirstChar,
+  timeFormatter
 };

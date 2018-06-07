@@ -59,6 +59,12 @@ const Card = new Schema({
     releaseId: Number,
     labelId: Number,
     members: Array,
+    comments: [{
+      id: Number,
+      userId: Number,
+      body: String,
+      time: Number
+    }],
     issue: {
       owner: String,
       repo: String,

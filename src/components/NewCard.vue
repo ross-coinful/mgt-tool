@@ -121,7 +121,7 @@ export default {
         callback: function () {
           this.isCreate = false;
           this.title = '';
-        }.bind(this),
+        }.bind(this)
       });
     }
   },

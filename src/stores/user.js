@@ -33,7 +33,7 @@ export default {
   getters: {
     userList: (state) => {
 
-      if (state.userList.length) {
+      if (state.userList.length && state.user) {
         return state.userList.filter(user => user.id !== state.user.id);
       }
       return state.userList;

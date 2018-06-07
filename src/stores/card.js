@@ -10,7 +10,8 @@ export default {
     boardWidths: [defaultWidth],
     shrinkCardIds: [],
     updateCard: false,
-    updateCardSuc: false
+    updateCardSuc: false,
+    addCommentSuc: false
   },
   actions: {
     shrinkCard ({ commit }, id) {
@@ -63,7 +64,7 @@ export default {
       ApiClient.PATCH('/card', {
         data
       }).then((response) => {
-        commit('updateCardSuc', data);
+        commit('updateCardSuc', response);
       }, (error) => {
         commit('updateCardErr', error);
       });
@@ -182,20 +183,11 @@ export default {
     closeCard (state) {
       state.isOpen = false;
     },
-    // getCardList (state, id) {
-    //   state.getCardList = true;
-    // },
     setCardList (state, list) {
-      // state.getCardList = false;
-      // state.getCardListSuc = true;
       state.cardList = list;
 
       state.boardWidths = calcBoardWidths(list);
     },
-    // getCardListErr (state, err) {
-    //   state.getCardList = false;
-    //   state.getCardListErr = err;
-    // },
     updateBoardWidths (state, activityIndex) {
       const newBoardWidths = state.boardWidths.slice();
 
@@ -255,6 +247,8 @@ export default {
     updateCardSuc (state, data) {
       state.updateCard = false;
       state.updateCardSuc = true;
+
+      console.log('updateCardSuc', data);
 
       const newCardList = state.cardList.slice();
       const _card = newCardList.find(card => card.id === data.id);
