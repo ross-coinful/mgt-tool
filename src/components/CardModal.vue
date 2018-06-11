@@ -82,7 +82,7 @@
               {{ repo.full_name }}
             </DropdownItem>
           </div>
-          <span v-if="activeRepo" slot="value">
+          <span v-if="activeRepo.owner && activeRepo.repo" slot="value">
             {{ activeRepo.owner }}/{{ activeRepo.repo }}
           </span>
           <span class="placeholder" v-else slot="value">
@@ -130,11 +130,14 @@ export default {
 
       return user ? user.avatar : '';
     },
-    getCardDetailSuc () {
-      return this.$store.state.cardDetail.getCardDetailSuc;
+    getCardSuc () {
+      return this.$store.state.cardDetail.getCardSuc;
     },
     updateCardSuc () {
       return this.$store.state.card.updateCardSuc;
+    },
+    updateCommentSuc () {
+      return this.$store.state.card.updateCommentSuc;
     },
     repoList () {
       return this.$store.state.repoList.data;
@@ -186,28 +189,28 @@ export default {
     }
   },
   watch: {
-    getCardDetailSuc (newValue, oldValue) {
+    getCardSuc (newValue, oldValue) {
       if (newValue && !oldValue) {
         this.initialTitle = this.$store.state.cardDetail.data.title;
         this.title = this.initialTitle;
         this.initialDetail = this.$store.state.cardDetail.data.detail;
         this.detail = this.initialDetail;
-        this.activeRepo = this.$store.state.cardDetail.data.issue;
+        this.activeRepo = this.$store.state.cardDetail.data.issue || {};
         this.activeMember = this.$store.state.cardDetail.data.members || [];
       }
     },
     updateCardSuc (newValue, oldValue) {
       if (newValue && !oldValue && this.updateType) {
+        const type = this.updateType;
+        const _type = type.charAt(0).toLowerCase() + type.slice(1);
 
-        if (this.updateType === 'comment') {
-          this.comment = '';
-        } else {
-          const type = this.updateType;
-          const _type = type.charAt(0).toLowerCase() + type.slice(1);
-
-          this[`initial${type}`] = this[_type];
-          this.updateType = '';
-        }
+        this[`initial${type}`] = this[_type];
+        this.updateType = '';
+      }
+    },
+    updateCommentSuc (newValue, oldValue) {
+      if (newValue && !oldValue) {
+        this.comment = '';
       }
     }
   },
@@ -220,7 +223,7 @@ export default {
       comment: '',
       updateType: '',
       isSubtask: false,
-      activeRepo: null, // {owner, repo}
+      activeRepo: {}, // {owner, repo}
       activeMember: [] // [id]
     };
   },
@@ -243,25 +246,37 @@ export default {
       const owner = e.currentTarget.getAttribute('data_owner');
       const repo = e.currentTarget.getAttribute('data_repo');
 
-      // 單選
-      this.activeRepo = {
-        owner,
-        repo
-      };
+      const activeRepo = this.activeRepo;
 
-      ApiClient.POST('/issue', {
-        data: {
-          owner,
-          repo,
-          title: this.title,
-          body: this.detail,
-          id: this.card.id
+      // if ('owner' in activeRepo && 'repo' in activeRepo) {
+        const oldRepo = `${activeRepo.owner}/${activeRepo.repo}`;
+        const newRepo = `${owner}/${repo}`;
+
+        if (oldRepo !== newRepo) {
+          // 單選
+          this.activeRepo = {
+            owner,
+            repo
+          };
+
+          const mapId = this.$store.state.map.map.id;
+          const cardId = this.$store.state.card.focusId;
+
+          ApiClient.POST(`/map/${mapId}/card/${cardId}/issue`, {
+            data: {
+              owner,
+              repo,
+              title: this.title,
+              body: this.detail,
+              id: this.card.id
+            }
+          }).then((rsponese) => {
+            console.log('addIssue successfully', rsponese);
+          }, (error) => {
+            console.log('addIssue failed', error);
+          });
         }
-      }).then((rsponese) => {
-        console.log('addIssue successfully', rsponese);
-      }, (error) => {
-        console.log('addIssue failed', error);
-      });
+      // }
     },
     changeActiveMember (e) {
       // 複選
@@ -276,22 +291,15 @@ export default {
       }
       this.activeMember = _activeMember;
 
-      this.$store.dispatch('updateCard', {
+      this.$store.dispatch('updateCard', [{
         id: this.$store.state.card.focusId,
         members: _activeMember
-      });
+      }]);
     },
     addComment () {
-      const { comments } = this.card;
-      const commentId = comments ? comments[comments.length - 1].id + 1 : 0;
-
-      this.$store.dispatch('updateCard', {
-        id: this.$store.state.card.focusId,
-        body: this.comment,
-        commentId
+      this.$store.dispatch('addComment', {
+        body: this.comment
       });
-
-      this.updateType = 'comment';
     },
     toggleEdit (type, status) {
       const _type = lowerFirstChar(type);
@@ -299,19 +307,19 @@ export default {
       this[`isFocus${type}`] = status;
 
       if (!status && this[`initial${type}`] !== this[_type]) {
-        this.$store.dispatch('updateCard', {
+        this.$store.dispatch('updateCard', [{
           id: this.$store.state.card.focusId,
           [_type]: this[_type]
-        });
+        }]);
 
         this.updateType = type;
       }
     },
     visiableChange (isOpen) {
-      const { dispatch, state } = this.$store;
+      const { dispatch } = this.$store;
 
       if (isOpen) {
-        dispatch('getCardDetail', state.card.focusId);
+        dispatch('getCard');
       } else {
         dispatch('closeCard');
       }

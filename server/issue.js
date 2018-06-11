@@ -1,14 +1,10 @@
 const router = require('express').Router();
-
 const axios = require('axios');
 const { githubApi } = require('../data');
 
-const mongoose = require('mongoose');
-const Card = mongoose.model('Card');
-
 module.exports = function (passport, isAuthenticated) {
   router.post('/', isAuthenticated, (req, res, next) => {
-    const { owner, repo, title, body, id } = req.body;
+    const { owner, repo, title, body } = req.body;
 
     axios({
       method: 'post',
@@ -28,18 +24,17 @@ module.exports = function (passport, isAuthenticated) {
         number: response.data.number
       };
 
-      Card.update({id: id}, {$set: {issue}}).exec((err, result) => {
-        if (err) {
-          return res.status(400).json(err).end();
+      req.card.issue = issue;
+      req.map.save(error => {
+        if (error) {
+          return res.status(400).json(error).end();
         }
-
-        return res.status(200).json(issue).end();
+        return res.status(200).end();
       });
     }, (error) => {
       console.log('post issue failed', error);
       return res.status(400).end();
     });
   });
-
   return router;
 };

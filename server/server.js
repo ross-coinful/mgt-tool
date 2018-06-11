@@ -43,49 +43,75 @@ const StoryMap = new Schema({
     id: Number,
     name: String,
     desc: String,
-    cards: Array,
-    releases: Array
-}, {
-    versionKey: false
-});
-
-const Card = new Schema({
-    id: Number,
-    title: String,
-    detail: String,
-    type: String,
-    prevId: Number,
-    parentId: Number,
-    releaseId: Number,
-    labelId: Number,
-    members: Array,
-    comments: [{
+    cards: [{
       id: Number,
-      userId: Number,
-      body: String,
-      time: Number
+      title: String,
+      detail: String,
+      type: {type: String},
+      prevId: Number,
+      parentId: Number,
+      releaseId: Number,
+      labelId: Number,
+      members: Array,
+      comments: [{
+        id: Number,
+        userId: Number,
+        body: String,
+        time: Number
+      }],
+      issue: {
+        owner: String,
+        repo: String,
+        number: Number
+      }
     }],
-    issue: {
-      owner: String,
-      repo: String,
-      number: Number
-    }
+    releases: [{
+      id: Number,
+      title: String,
+      order: Number
+    }]
 }, {
     versionKey: false
 });
 
-const Release = new Schema({
-    id: Number,
-    title: String,
-    order: Number
-}, {
-    versionKey: false // remove _v field
-});
+// const Card = new Schema({
+//     id: Number,
+//     title: String,
+//     detail: String,
+//     type: String,
+//     prevId: Number,
+//     parentId: Number,
+//     releaseId: Number,
+//     labelId: Number,
+//     members: Array,
+//     comments: [{
+//       id: Number,
+//       userId: Number,
+//       body: String,
+//       time: Number
+//     }],
+//     issue: {
+//       owner: String,
+//       repo: String,
+//       number: Number
+//     }
+// }, {
+//     versionKey: false
+// });
 
+// const Release = new Schema({
+//     id: Number,
+//     title: String,
+//     order: Number
+// }, {
+//     versionKey: false // remove _v field
+// });
+
+const StoryMapModel = mongoose.model('StoryMap', StoryMap);
 const UserModel = mongoose.model('User', User);
-mongoose.model('StoryMap', StoryMap);
-mongoose.model('Card', Card);
-mongoose.model('Release', Release);
+// mongoose.model('StoryMap', StoryMap);
+// mongoose.model('Card', Card);
+// mongoose.model('Release', Release);
 mongoose.connect(DB_URL, (err, db) => {
 
   if (err) {
@@ -150,20 +176,38 @@ function isAuthenticated (req, res, next) {
 
 // routes
 const auth = require('./auth');
-const card = require('./card');
-const release = require('./release');
-const map = require('./map');
 const repo = require('./repo');
 const user = require('./user');
+const map = require('./map');
+const card = require('./card');
+const release = require('./release');
 const issue = require('./issue');
+const comment = require('./comment');
+
+app.param('mapId', function (req, res, next, mapId) {
+  StoryMapModel.findOne({id: parseInt(mapId, 10)}).exec((err, map) => {
+    if (err) return next(err);
+    if (!map) return next(new Error('No map is found'));
+    req.map = map;
+    next();
+  });
+});
+
+app.param('cardId', function (req, res, next, cardId) {
+  const card = req.map.cards.find(card => card.id === parseInt(cardId, 10));
+  if (!card) return next(new Error('No card is found'));
+  req.card = card;
+  next();
+});
 
 app.use('/auth', auth(passport, isAuthenticated));
-app.use('/card', card(passport, isAuthenticated));
-app.use('/release', release(passport, isAuthenticated));
-app.use('/map', map(passport, isAuthenticated));
 app.use('/repo', repo(passport, isAuthenticated));
 app.use('/user', user(passport, isAuthenticated));
-app.use('/issue', issue(passport, isAuthenticated));
+app.use('/map', map(passport, isAuthenticated));
+app.use('/map/:mapId/card', card(passport, isAuthenticated));
+app.use('/map/:mapId/release', release(passport, isAuthenticated));
+app.use('/map/:mapId/card/:cardId/issue', issue(passport, isAuthenticated));
+app.use('/map/:mapId/card/:cardId/comment', comment(passport, isAuthenticated));
 
 app.listen(port, () => {
   console.log('==>Server is running on port %s', port);

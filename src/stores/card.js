@@ -11,7 +11,7 @@ export default {
     shrinkCardIds: [],
     updateCard: false,
     updateCardSuc: false,
-    addCommentSuc: false
+    updateCommentSuc: false
   },
   actions: {
     shrinkCard ({ commit }, id) {
@@ -32,22 +32,20 @@ export default {
     closeCard ({ commit }) {
       commit('closeCard');
     },
-    getCard ({ commit }, id) {
-      commit('getCard', id);
-    },
     updateBoardWidths ({ commit }, activityIndex) {
       commit('updateBoardWidths', activityIndex);
     },
-    addCard ({ commit, state }, { data, callback }) {
+    addCard ({ commit, rootState, state }, { data, callback }) {
       commit('addCard');
 
+      const mapId = rootState.map.map.id;
       const { type } = data;
 
       if (type === 'subtask') {
         data.labelId = 0;
       }
 
-      ApiClient.POST('/card', {
+      ApiClient.POST(`/map/${mapId}/card`, {
         data
       })
       .then((id) => {
@@ -58,21 +56,25 @@ export default {
         commit('addCardErr', error);
       });
     },
-    updateCard ({ commit }, data) {
+    updateCard ({ commit, rootState }, data) {
       commit('updateCard');
 
-      ApiClient.PATCH('/card', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.PATCH(`/map/${mapId}/card`, {
         data
-      }).then((response) => {
-        commit('updateCardSuc', response);
+      }).then((cardList) => {
+        commit('updateCardSuc', cardList);
       }, (error) => {
         commit('updateCardErr', error);
       });
     },
-    updateCardPos ({ commit }, data) {
+    updateCardPos ({ commit, rootState }, data) {
       commit('updateCardPos', data);
 
-      ApiClient.PATCH('/card/pos', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.PATCH(`/map/${mapId}/card`, {
         data
       }).then((response) => {
         console.log('updateCardPos suc');
@@ -80,7 +82,7 @@ export default {
         console.log('updateCardPos', error);
       });
     },
-    deleteCard ({ commit, state, getters }, id) {
+    deleteCard ({ commit, rootState, state, getters }, id) {
       const card = getters.card(id);
       const { type } = card;
       const nextId = getters.nextCardId(id);
@@ -89,7 +91,6 @@ export default {
       if (type === 'activity') {
         const taskChild = getters.childCardIds(id);
         ids = ids.concat(taskChild);
-        console.log('herer', taskChild);
 
         // add subtask child ids
         taskChild.forEach(taskId => {
@@ -102,7 +103,9 @@ export default {
 
       commit('deleteCard');
 
-      ApiClient.DELETE('/card', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.DELETE(`/map/${mapId}/card`, {
         data: ids
       }).then((response) => {
 
@@ -126,6 +129,51 @@ export default {
         }
       }, (error) => {
         commit('deleteCardErr', error);
+      });
+    },
+    addComment ({ commit, rootState, state }, data) {
+      commit('updateComment');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.POST(`/map/${mapId}/card/${cardId}/comment`, {
+        data
+      })
+      .then((card) => {
+        commit('updateCommentSuc', card);
+      }, (error) => {
+        commit('updateCommentErr', error);
+      });
+    },
+    updateComment ({ commit, rootState, state }, { commentId, body }) {
+      commit('updateComment');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.PATCH(`/map/${mapId}/card/${cardId}/comment/${commentId}`, {
+        data: {
+          body
+        }
+      })
+      .then((card) => {
+        commit('updateCommentSuc', card);
+      }, (error) => {
+        commit('updateCommentErr', error);
+      });
+    },
+    deleteComment ({ commit, rootState, state }, commentId) {
+      commit('updateComment');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.DELETE(`/map/${mapId}/card/${cardId}/comment/${commentId}`)
+      .then((card) => {
+        commit('updateCommentSuc', card);
+      }, (error) => {
+        commit('updateCommentErr', error);
       });
     }
   },
@@ -244,17 +292,10 @@ export default {
       state.updateCard = true;
       state.updateCardSuc = false;
     },
-    updateCardSuc (state, data) {
+    updateCardSuc (state, cardList) {
       state.updateCard = false;
       state.updateCardSuc = true;
-
-      console.log('updateCardSuc', data);
-
-      const newCardList = state.cardList.slice();
-      const _card = newCardList.find(card => card.id === data.id);
-      Object.assign(_card, data);
-
-      state.cardList = newCardList;
+      state.cardList = cardList;
     },
     updateCardErr (state, err) {
       state.updateCard = false;
@@ -294,6 +335,24 @@ export default {
     deleteCardErr (state, err) {
       state.deleteCard = false;
       state.deleteCardErr = err;
+    },
+    updateComment (state) {
+      state.updateComment = true;
+      state.updateCommentSuc = false;
+    },
+    updateCommentSuc (state, data) {
+      state.updateComment = false;
+      state.updateCommentSuc = true;
+
+      const newCardList = state.cardList.slice();
+      const _card = newCardList.find(card => card.id === data.id);
+      Object.assign(_card, data);
+
+      state.cardList = newCardList;
+    },
+    updateCommentErr (state, err) {
+      state.updateComment = false;
+      state.updateCommentErr = err;
     }
   }
 };
