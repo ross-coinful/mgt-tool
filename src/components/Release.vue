@@ -30,7 +30,7 @@
           </DropdownItem>
 
           <DropdownItem
-            v-if="releaseIndex !== (releaseList.length - 1)"
+            v-if="releaseIndex < (releaseList.length - 2)"
           >
             <span @click="moveReleaseDown">Move down</span>
           </DropdownItem>

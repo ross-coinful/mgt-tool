@@ -39,7 +39,7 @@ module.exports = function (passport, isAuthenticated) {
         return res.status(400).json(error).end();
       }
       req.body.id = id;
-      req.body.releases = [{id: 0, title: 'Unscheduled', order: 0}];
+      req.body.releases = [{id: 0, title: 'Unscheduled', order: 999}];
 
       new StoryMap(req.body).save((err, map) => {
         if (err) {
