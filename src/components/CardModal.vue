@@ -82,7 +82,7 @@
               {{ repo.full_name }}
             </DropdownItem>
           </div>
-          <span v-if="activeRepo" slot="value">
+          <span v-if="activeRepo.owner && activeRepo.repo" slot="value">
             {{ activeRepo.owner }}/{{ activeRepo.repo }}
           </span>
           <span class="placeholder" v-else slot="value">
@@ -195,7 +195,7 @@ export default {
         this.title = this.initialTitle;
         this.initialDetail = this.$store.state.cardDetail.data.detail;
         this.detail = this.initialDetail;
-        this.activeRepo = this.$store.state.cardDetail.data.issue;
+        this.activeRepo = this.$store.state.cardDetail.data.issue || {};
         this.activeMember = this.$store.state.cardDetail.data.members || [];
       }
     },
@@ -223,7 +223,7 @@ export default {
       comment: '',
       updateType: '',
       isSubtask: false,
-      activeRepo: null, // {owner, repo}
+      activeRepo: {}, // {owner, repo}
       activeMember: [] // [id]
     };
   },
@@ -246,25 +246,37 @@ export default {
       const owner = e.currentTarget.getAttribute('data_owner');
       const repo = e.currentTarget.getAttribute('data_repo');
 
-      // 單選
-      this.activeRepo = {
-        owner,
-        repo
-      };
+      const activeRepo = this.activeRepo;
 
-      ApiClient.POST('/issue', {
-        data: {
-          owner,
-          repo,
-          title: this.title,
-          body: this.detail,
-          id: this.card.id
+      // if ('owner' in activeRepo && 'repo' in activeRepo) {
+        const oldRepo = `${activeRepo.owner}/${activeRepo.repo}`;
+        const newRepo = `${owner}/${repo}`;
+
+        if (oldRepo !== newRepo) {
+          // 單選
+          this.activeRepo = {
+            owner,
+            repo
+          };
+
+          const mapId = this.$store.state.map.map.id;
+          const cardId = this.$store.state.card.focusId;
+
+          ApiClient.POST(`/map/${mapId}/card/${cardId}/issue`, {
+            data: {
+              owner,
+              repo,
+              title: this.title,
+              body: this.detail,
+              id: this.card.id
+            }
+          }).then((rsponese) => {
+            console.log('addIssue successfully', rsponese);
+          }, (error) => {
+            console.log('addIssue failed', error);
+          });
         }
-      }).then((rsponese) => {
-        console.log('addIssue successfully', rsponese);
-      }, (error) => {
-        console.log('addIssue failed', error);
-      });
+      // }
     },
     changeActiveMember (e) {
       // 複選

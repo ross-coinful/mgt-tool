@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const axios = require('axios');
+const { githubApi } = require('../data');
 
 module.exports = function (passport, isAuthenticated) {
   router.get('/:cardId', isAuthenticated, (req, res) => {
@@ -22,6 +24,32 @@ module.exports = function (passport, isAuthenticated) {
       });
 
       Object.assign(card, data);
+
+      // update issue
+      if (card.issue && (data.hasOwnProperty('detail') || data.hasOwnProperty('title'))) {
+        const { owner, repo, number } = card.issue;
+        const updateData = {};
+
+        if (data.hasOwnProperty('detail')) {
+          updateData.body = data.detail;
+        } else {
+          updateData.title = data.title;
+        }
+
+        axios({
+          method: 'patch',
+          url: `${githubApi}/repos/${owner}/${repo}/issues/${number}`,
+          headers: {
+            Authorization: `token ${req.user.token}`,
+            Accept: 'application/vnd.github.symmetra-preview+json'
+          },
+          data: updateData
+        }).then((response) => {
+          console.log('update to github successfully');
+        }, (error) => {
+          console.log('update to github failed', error);
+        });
+      }
     });
 
     map.save(error => {
