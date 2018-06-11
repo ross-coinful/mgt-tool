@@ -32,22 +32,20 @@ export default {
     closeCard ({ commit }) {
       commit('closeCard');
     },
-    getCard ({ commit }, id) {
-      commit('getCard', id);
-    },
     updateBoardWidths ({ commit }, activityIndex) {
       commit('updateBoardWidths', activityIndex);
     },
-    addCard ({ commit, state }, { data, callback }) {
+    addCard ({ commit, rootState, state }, { data, callback }) {
       commit('addCard');
 
+      const mapId = rootState.map.map.id;
       const { type } = data;
 
       if (type === 'subtask') {
         data.labelId = 0;
       }
 
-      ApiClient.POST('/card', {
+      ApiClient.POST(`/map/${mapId}/card`, {
         data
       })
       .then((id) => {
@@ -58,10 +56,12 @@ export default {
         commit('addCardErr', error);
       });
     },
-    updateCard ({ commit }, data) {
+    updateCard ({ commit, rootState }, data) {
       commit('updateCard');
 
-      ApiClient.PATCH('/card', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.PATCH(`/map/${mapId}/card`, {
         data
       }).then((response) => {
         commit('updateCardSuc', response);
@@ -69,10 +69,12 @@ export default {
         commit('updateCardErr', error);
       });
     },
-    updateCardPos ({ commit }, data) {
+    updateCardPos ({ commit, rootState }, data) {
       commit('updateCardPos', data);
 
-      ApiClient.PATCH('/card/pos', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.PATCH(`/map/${mapId}/card`, {
         data
       }).then((response) => {
         console.log('updateCardPos suc');
@@ -80,7 +82,7 @@ export default {
         console.log('updateCardPos', error);
       });
     },
-    deleteCard ({ commit, state, getters }, id) {
+    deleteCard ({ commit, rootState, state, getters }, id) {
       const card = getters.card(id);
       const { type } = card;
       const nextId = getters.nextCardId(id);
@@ -89,7 +91,6 @@ export default {
       if (type === 'activity') {
         const taskChild = getters.childCardIds(id);
         ids = ids.concat(taskChild);
-        console.log('herer', taskChild);
 
         // add subtask child ids
         taskChild.forEach(taskId => {
@@ -102,7 +103,9 @@ export default {
 
       commit('deleteCard');
 
-      ApiClient.DELETE('/card', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.DELETE(`/map/${mapId}/card`, {
         data: ids
       }).then((response) => {
 

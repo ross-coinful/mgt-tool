@@ -97,6 +97,12 @@ export default {
       this[`zoom${type}`] = () => this.zoom(type, true);
     });
   },
+  mounted () {
+    // 沒有settimeout, boardWidths裡只有一個初始值
+    // setTimeout(() => {
+      // this.calcTotalWidth();
+    // }, 100);
+  },
   computed: {
     username () {
       const { user } = this.$store.state.user;
@@ -190,7 +196,7 @@ export default {
     calcTotalWidth () {
       const storyMapWidth = document.getElementsByClassName('story-map')[0].clientWidth;
       const totalWidth = this.$store.state.card.boardWidths.reduce((accumulator, currentValue) => accumulator + currentValue) + 135;
-      console.log('hahhahaa', storyMapWidth);
+      console.log('hahhahaa', storyMapWidth, totalWidth, this.$store.state.card.boardWidths);
 
       this.totalWidth = 'min-width:' + Math.max(storyMapWidth, totalWidth) + 'px';
     },

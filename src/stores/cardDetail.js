@@ -2,36 +2,39 @@ import ApiClient from '../helpers/ApiClient';
 
 export default {
   state: {
-    getCardDetail: false,
-    getCardDetailSuc: false,
-    getCardDetailErr: false,
+    getCard: false,
+    getCardSuc: false,
+    getCardErr: false,
     data: {}
   },
   actions: {
-    getCardDetail ({ commit }, id) {
-      commit('getCardDetail');
+    getCard ({ commit, rootState }) {
+      commit('getCard');
 
-      ApiClient.GET(`/card/${id}`)
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.GET(`/map/${mapId}/card/${cardId}`)
       .then((response) => {
-        commit('getCardDetailSuc', response);
+        commit('getCardSuc', response);
       }, (error) => {
-        commit('getCardDetailErr', error);
+        commit('getCardErr', error);
       });
     }
   },
   mutations: {
-    getCardDetail (state) {
-      state.getCardDetail = true;
-      state.getCardDetailSuc = false;
+    getCard (state) {
+      state.getCard = true;
+      state.getCardSuc = false;
     },
-    getCardDetailSuc (state, data) {
-      state.getCardDetail = false;
-      state.getCardDetailSuc = true;
+    getCardSuc (state, data) {
+      state.getCard = false;
+      state.getCardSuc = true;
       state.data = data;
     },
-    getCardDetailErr (state, err) {
-      state.getCardDetail = false;
-      state.getCardDetailErr = err;
+    getCardErr (state, err) {
+      state.getCard = false;
+      state.getCardErr = err;
     }
   }
 };

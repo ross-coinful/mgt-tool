@@ -130,8 +130,8 @@ export default {
 
       return user ? user.avatar : '';
     },
-    getCardDetailSuc () {
-      return this.$store.state.cardDetail.getCardDetailSuc;
+    getCardSuc () {
+      return this.$store.state.cardDetail.getCardSuc;
     },
     updateCardSuc () {
       return this.$store.state.card.updateCardSuc;
@@ -186,7 +186,7 @@ export default {
     }
   },
   watch: {
-    getCardDetailSuc (newValue, oldValue) {
+    getCardSuc (newValue, oldValue) {
       if (newValue && !oldValue) {
         this.initialTitle = this.$store.state.cardDetail.data.title;
         this.title = this.initialTitle;
@@ -276,19 +276,14 @@ export default {
       }
       this.activeMember = _activeMember;
 
-      this.$store.dispatch('updateCard', {
+      this.$store.dispatch('updateCard', [{
         id: this.$store.state.card.focusId,
         members: _activeMember
-      });
+      }]);
     },
     addComment () {
-      const { comments } = this.card;
-      const commentId = comments ? comments[comments.length - 1].id + 1 : 0;
-
-      this.$store.dispatch('updateCard', {
-        id: this.$store.state.card.focusId,
-        body: this.comment,
-        commentId
+      this.$store.dispatch('addComment', {
+        body: this.comment
       });
 
       this.updateType = 'comment';
@@ -299,19 +294,19 @@ export default {
       this[`isFocus${type}`] = status;
 
       if (!status && this[`initial${type}`] !== this[_type]) {
-        this.$store.dispatch('updateCard', {
+        this.$store.dispatch('updateCard', [{
           id: this.$store.state.card.focusId,
           [_type]: this[_type]
-        });
+        }]);
 
         this.updateType = type;
       }
     },
     visiableChange (isOpen) {
-      const { dispatch, state } = this.$store;
+      const { dispatch } = this.$store;
 
       if (isOpen) {
-        dispatch('getCardDetail', state.card.focusId);
+        dispatch('getCard');
       } else {
         dispatch('closeCard');
       }

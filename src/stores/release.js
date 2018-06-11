@@ -15,10 +15,12 @@ export default {
     shrinkOtherReleases ({ commit }, id) {
       commit('shrinkOtherReleases', id);
     },
-    addRelease ({ commit }, data) {
+    addRelease ({ commit, rootState }, data) {
       commit('addRelease');
 
-      ApiClient.POST('/release', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.POST(`/map/${mapId}/release`, {
         data
       }).then((id) => {
         data.id = id;
@@ -28,10 +30,12 @@ export default {
         commit('addReleaseErr', error);
       });
     },
-    updateRelease ({ commit }, data) {
+    updateRelease ({ commit, rootState }, data) {
       commit('updateRelease');
 
-      ApiClient.PATCH('/release', {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.PATCH(`/map/${mapId}/release`, {
         data
       }).then((response) => {
         commit('updateReleaseSuc', data);
@@ -39,14 +43,13 @@ export default {
         commit('updateReleaseErr', error);
       });
     },
-    deleteRelease ({ commit }, id) {
+    deleteRelease ({ commit, rootState }, id) {
       commit('deleteRelease');
 
-      ApiClient.DELETE('/release', {
-        data: {
-          id
-        }
-      }).then((response) => {
+      const mapId = rootState.map.map.id;
+
+      ApiClient.DELETE(`/map/${mapId}/release/${id}`)
+      .then((response) => {
         commit('deleteReleaseSuc', id);
       }, (error) => {
         commit('deleteReleaseErr', error);

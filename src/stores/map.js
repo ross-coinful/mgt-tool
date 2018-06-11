@@ -19,9 +19,8 @@ export default {
     getMap ({ commit }, id) {
       commit('getMap');
 
-      ApiClient.GET('/map', {
-        params: { id }
-      }).then((map) => {
+      ApiClient.GET(`/map/${id}`)
+      .then((map) => {
         commit('getMapSuc', map);
         commit('setCardList', map.cards);
         commit('setReleaseList', map.releases);

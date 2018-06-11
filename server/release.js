@@ -1,87 +1,53 @@
-const express = require('express');
-const router = express.Router();
-
-const mongoose = require('mongoose');
-const StoryMap = mongoose.model('StoryMap');
-const Release = mongoose.model('Release');
+const router = require('express').Router();
 
 module.exports = function (passport, isAuthenticated) {
-  router.get('/list', isAuthenticated, (req, res) => {
-    Release.find({}, {'_id': false}).exec((err, releases) => {
-      if (err) {
-        console.log('Get card list: Fail.', err);
-        return res.status(400).end();
-      }
-
-      let maxOrder = 0;
-
-      if (releases.length) {
-        maxOrder = releases.reduce((max, v) => Math.max(max, v.order), releases[0].order);
-      }
-
-      releases.push({id: 0, title: 'Unscheduled', order: maxOrder + 1});
-      console.log('Get card list: Ok.');
-      return res.status(200).json(releases).end();
-    });
-  });
-
   router.post('/', isAuthenticated, (req, res) => {
-    Release.find().exec((error, releases) => {
-      console.log('Releases', releases.length, error);
-      const count = releases.length;
-      let id = 1;
+    const release = req.body;
+    const map = req.map;
+    const { releases } = map;
+    const count = releases.length;
+    const id = count === 0 ? 0 : releases[count - 1].id + 1;
 
-      if (count) {
-        id = releases[count - 1].id + 1;
+    release.id = id;
+    releases.push(release);
+
+    map.save(error => {
+      if (error) {
+        return res.status(400).json(error).end();
       }
-
-      req.body.id = id;
-
-      new Release(req.body).save((err, release) => {
-        if (err) {
-          console.log('Create a new release: Fail to save to DB.', err);
-          return res.status(400).end();
-        }
-
-        StoryMap.update({ id: req.body.mapId }, { $push: { releases: release._id } }).exec((err, result) => {
-          if (err) {
-            console.log('Update StoryMap with release: Fail.', err);
-          }
-          return res.status(200).json(id).end();
-        });
-      });
+      return res.status(200).json(id).end();
     });
   });
 
-  router.delete('/', isAuthenticated, (req, res) => {
-    Release.remove({id: req.body.id}).exec((err, cards) => {
-      if (err) {
-        console.log('Delete release: Fail.', err);
-        return res.status(400).end();
+  router.delete('/:releaseId', isAuthenticated, (req, res) => {
+    const { releaseId } = req.params;
+    const map = req.map;
+    const { releases } = map;
+
+    const index = releases.findIndex(release => release.id === parseInt(releaseId, 10));
+    releases.splice(index, 1);
+
+    map.save(error => {
+      if (error) {
+        return res.status(400).json(error).end();
       }
-      console.log('Delete release: Ok.');
       return res.status(200).end();
     });
   });
 
   router.patch('/', isAuthenticated, (req, res) => {
-    const body = req.body;
-    const promises = [];
+    const updateData = req.body;
+    const map = req.map;
 
-    body.forEach(data => {
-      const id = data.id;
-      delete data.id;
-
-      promises.push(
-        Release.update({id: id}, {$set: data}).exec((err, result) => {
-          if (err) {
-            console.log('Update release: Fail.', err);
-          }
-          console.log('Update release: Ok.');
-        }));
+    updateData.forEach(data => {
+      const release = map.releases.find(release => release.id === data.id);
+      Object.assign(release, data);
     });
 
-    Promise.all(promises).then(() => {
+    map.save(error => {
+      if (error) {
+        return res.status(400).json(error).end();
+      }
       return res.status(200).end();
     });
   });
