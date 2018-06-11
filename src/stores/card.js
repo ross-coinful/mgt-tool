@@ -11,7 +11,7 @@ export default {
     shrinkCardIds: [],
     updateCard: false,
     updateCardSuc: false,
-    addCommentSuc: false
+    updateCommentSuc: false
   },
   actions: {
     shrinkCard ({ commit }, id) {
@@ -63,8 +63,8 @@ export default {
 
       ApiClient.PATCH(`/map/${mapId}/card`, {
         data
-      }).then((response) => {
-        commit('updateCardSuc', response);
+      }).then((cardList) => {
+        commit('updateCardSuc', cardList);
       }, (error) => {
         commit('updateCardErr', error);
       });
@@ -129,6 +129,51 @@ export default {
         }
       }, (error) => {
         commit('deleteCardErr', error);
+      });
+    },
+    addComment ({ commit, rootState, state }, data) {
+      commit('updateComment');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.POST(`/map/${mapId}/card/${cardId}/comment`, {
+        data
+      })
+      .then((card) => {
+        commit('updateCommentSuc', card);
+      }, (error) => {
+        commit('updateCommentErr', error);
+      });
+    },
+    updateComment ({ commit, rootState, state }, { commentId, body }) {
+      commit('updateComment');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.PATCH(`/map/${mapId}/card/${cardId}/comment/${commentId}`, {
+        data: {
+          body
+        }
+      })
+      .then((card) => {
+        commit('updateCommentSuc', card);
+      }, (error) => {
+        commit('updateCommentErr', error);
+      });
+    },
+    deleteComment ({ commit, rootState, state }, commentId) {
+      commit('updateComment');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      ApiClient.DELETE(`/map/${mapId}/card/${cardId}/comment/${commentId}`)
+      .then((card) => {
+        commit('updateCommentSuc', card);
+      }, (error) => {
+        commit('updateCommentErr', error);
       });
     }
   },
@@ -247,17 +292,10 @@ export default {
       state.updateCard = true;
       state.updateCardSuc = false;
     },
-    updateCardSuc (state, data) {
+    updateCardSuc (state, cardList) {
       state.updateCard = false;
       state.updateCardSuc = true;
-
-      console.log('updateCardSuc', data);
-
-      const newCardList = state.cardList.slice();
-      const _card = newCardList.find(card => card.id === data.id);
-      Object.assign(_card, data);
-
-      state.cardList = newCardList;
+      state.cardList = cardList;
     },
     updateCardErr (state, err) {
       state.updateCard = false;
@@ -297,6 +335,24 @@ export default {
     deleteCardErr (state, err) {
       state.deleteCard = false;
       state.deleteCardErr = err;
+    },
+    updateComment (state) {
+      state.updateComment = true;
+      state.updateCommentSuc = false;
+    },
+    updateCommentSuc (state, data) {
+      state.updateComment = false;
+      state.updateCommentSuc = true;
+
+      const newCardList = state.cardList.slice();
+      const _card = newCardList.find(card => card.id === data.id);
+      Object.assign(_card, data);
+
+      state.cardList = newCardList;
+    },
+    updateCommentErr (state, err) {
+      state.updateComment = false;
+      state.updateCommentErr = err;
     }
   }
 };

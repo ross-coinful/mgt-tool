@@ -136,6 +136,9 @@ export default {
     updateCardSuc () {
       return this.$store.state.card.updateCardSuc;
     },
+    updateCommentSuc () {
+      return this.$store.state.card.updateCommentSuc;
+    },
     repoList () {
       return this.$store.state.repoList.data;
     },
@@ -198,16 +201,16 @@ export default {
     },
     updateCardSuc (newValue, oldValue) {
       if (newValue && !oldValue && this.updateType) {
+        const type = this.updateType;
+        const _type = type.charAt(0).toLowerCase() + type.slice(1);
 
-        if (this.updateType === 'comment') {
-          this.comment = '';
-        } else {
-          const type = this.updateType;
-          const _type = type.charAt(0).toLowerCase() + type.slice(1);
-
-          this[`initial${type}`] = this[_type];
-          this.updateType = '';
-        }
+        this[`initial${type}`] = this[_type];
+        this.updateType = '';
+      }
+    },
+    updateCommentSuc (newValue, oldValue) {
+      if (newValue && !oldValue) {
+        this.comment = '';
       }
     }
   },
@@ -285,8 +288,6 @@ export default {
       this.$store.dispatch('addComment', {
         body: this.comment
       });
-
-      this.updateType = 'comment';
     },
     toggleEdit (type, status) {
       const _type = lowerFirstChar(type);

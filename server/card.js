@@ -28,7 +28,7 @@ module.exports = function (passport, isAuthenticated) {
       if (error) {
         return res.status(400).json(error).end();
       }
-      return res.status(200).end();
+      return res.status(200).json(map.cards).end();
     });
   });
 

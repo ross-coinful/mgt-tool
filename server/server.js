@@ -193,6 +193,13 @@ app.param('mapId', function (req, res, next, mapId) {
   });
 });
 
+app.param('cardId', function (req, res, next, cardId) {
+  const card = req.map.cards.find(card => card.id === parseInt(cardId, 10));
+  if (!card) return next(new Error('No card is found'));
+  req.card = card;
+  next();
+});
+
 app.use('/auth', auth(passport, isAuthenticated));
 app.use('/repo', repo(passport, isAuthenticated));
 app.use('/user', user(passport, isAuthenticated));

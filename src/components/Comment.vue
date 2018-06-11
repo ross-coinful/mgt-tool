@@ -68,8 +68,7 @@ export default {
     },
     blurComment () {
       if (this.initialComment !== this.comment) {
-        this.$store.dispatch('updateCard', {
-          id: this.$store.state.card.focusId,
+        this.$store.dispatch('updateComment', {
           commentId: this.id,
           body: this.comment
         });
@@ -83,11 +82,7 @@ export default {
         okText: 'ok',
         cancelText: 'cancel',
         onOk: () => {
-          this.$store.dispatch('updateCard', {
-            id: this.$store.state.card.focusId,
-            commentId: this.id,
-            body: null
-          });
+          this.$store.dispatch('deleteComment', this.id);
         }
       });
 
