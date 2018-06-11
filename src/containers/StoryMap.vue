@@ -403,10 +403,11 @@ export default {
   height: calc(100% - 180px);
   overflow-y: auto;
   overflow-x: hidden;
+  margin-top: 4px;
 }
 
 .release-row {
-  margin-top: 4px;
+  margin-bottom: 4px;
   background-color: #efefef;
 }
 
