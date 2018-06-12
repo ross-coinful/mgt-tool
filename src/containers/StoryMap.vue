@@ -1,6 +1,6 @@
 <template>
 
-  <div class="story-map" ref="storyMap">
+  <div class="story-map" ref="storyMap" :style="zoomStyle">
 
     <ul class="activity-board-container board-list list-container" :style="totalWidth">
       <ActivityBoard
@@ -91,7 +91,7 @@ import { mapGetters } from 'vuex';
 export default {
   name: 'StoryMap',
   props: {
-    totalWidth: {
+    zoomStyle: {
       type: String,
       required: true
     }
@@ -117,6 +117,13 @@ export default {
 
     this.$store.dispatch('getMap', mapId);
   },
+  mounted () {
+    this.calcLastReleaseHeight();
+  },
+  updated () {
+    this.calcTotalWidth();
+    this.calcLastReleaseHeight();
+  },
   components: {
     ActivityBoard,
     TaskBoard,
@@ -134,7 +141,8 @@ export default {
       createReleaseIndex: null,
       createReleaseOrder: null,
       newRelease: null,
-      isFocus: false
+      isFocus: false,
+      totalWidth: ''
     };
   },
   methods: {
@@ -149,6 +157,37 @@ export default {
     },
     checkFillSpace (parentId) {
       return parentId === this.fillParentId;
+    },
+    calcTotalWidth () {
+      console.log('calcTotalWidth');
+      const storyMapWidth = document.getElementsByClassName('story-map')[0].clientWidth;
+      const totalWidth = this.$store.state.card.boardWidths.reduce((accumulator, currentValue) => accumulator + currentValue) + 135;
+
+      this.totalWidth = 'min-width:' + Math.max(storyMapWidth, totalWidth) + 'px';
+    },
+    calcLastReleaseHeight () {
+      console.log('calcLastReleaseHeight');
+      const container = document.getElementsByClassName('task-board-container')[0];
+      const { scrollHeight, clientHeight } = container;
+      const releases = document.getElementsByClassName('release-row');
+
+      if (releases.length) {
+        const lastRelease = releases[releases.length - 1];
+        const title = lastRelease.children[0];
+        const list = lastRelease.children[1];
+        list.style.height = '';
+
+        console.log('check', scrollHeight, clientHeight);
+        // 12 === height of scrollbal for x-axis
+        if ((scrollHeight - 12) <= clientHeight) {
+          const titleBottom = title.getBoundingClientRect().bottom;
+          const containerBottom = container.getBoundingClientRect().bottom;
+
+          console.log('bottom', containerBottom, titleBottom);
+
+          list.style.height = (containerBottom - titleBottom - 4) + 'px';
+        }
+      }
     },
     onEnd (evt) {
       const id = parseInt(evt.item.dataset.id, 10);
@@ -177,6 +216,11 @@ export default {
       const data = {
         id
       };
+
+      // 將task card拖到自己下方 (subtask)
+      if (fromType === 'task' && toType === 'subtask' && parseInt(toData.parentid, 10) === id) {
+        return false;
+      }
 
       switch (toType) {
         case 'task': {
@@ -300,6 +344,7 @@ export default {
 
         this.addWidthIndex = null;
         this.subtractWidthIndex = activityIndex;
+        console.log('subtract 1', activityIndex);
       } else if (fromType === 'task' && toType === 'task') {
         const draggedActivityIndex = this.activityCardIds.indexOf(fromParentId);
         const relatedActivityIndex = this.activityCardIds.indexOf(toParentId);
@@ -308,11 +353,13 @@ export default {
 
           if (this.taskCardIds(parseInt(toParentId, 10)).length) {
             this.addWidthIndex = relatedActivityIndex;
+            console.log('add 1', relatedActivityIndex);
           } else {
             this.addWidthIndex = null;
           }
 
           this.subtractWidthIndex = draggedActivityIndex;
+          console.log('subtract 2', draggedActivityIndex);
         } else {
           this.addWidthIndex = null;
           this.subtractWidthIndex = null;
@@ -322,6 +369,7 @@ export default {
 
         if (this.taskCardIds(parseInt(toParentId, 10)).length) {
           this.addWidthIndex = activityIndex;
+          console.log('add 2', activityIndex);
         } else {
           this.addWidthIndex = null;
         }
@@ -421,6 +469,7 @@ export default {
 
 .board-list .board {
   display: table-cell;
+  vertical-align: top;
 }
 </style>
 

@@ -114,7 +114,7 @@ export default {
 
           commit('deleteCardSuc', {ids, nextId, prevId});
 
-          ApiClient.PATCH('/card', {
+          ApiClient.PATCH(`/map/${mapId}/card`, {
             data: [{
               id: nextId,
               prevId

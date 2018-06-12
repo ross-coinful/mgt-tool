@@ -90,7 +90,11 @@ export default {
   },
   computed: {
     style () {
-      return 'min-width: ' + this.width + 'px';
+      // const noSubtask = this.$store.state.card.cardList.every(card => card.type !== 'subtask');
+      // const isUnscheduledRelease = this.releaseId === 0;
+      // const height = isUnscheduledRelease && noSubtask ? 'height: calc(100vh - 265px);' : '';
+
+      return 'width: ' + this.width + 'px';
     },
     setClass () {
       return `task-board board ${this.isShrink ? 'shrink' : ''}`;
@@ -132,12 +136,6 @@ export default {
   display: none;
 }
 
-.task-board {
-  /*display: flex;*/
-  /*flex-direction: column;*/
-  min-height: 94px;
-}
-
 .task-board.shrink {
   min-height: 22px;
 }
@@ -147,8 +145,8 @@ export default {
   flex-direction: row;
   flex-wrap: wrap;
   flex: 1;
-  padding-right: 0;
-  padding-bottom: 15px;
+  margin-bottom: 15px;
+  min-height: 94px;
 }
 
 .subtask-list {

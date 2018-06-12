@@ -39,7 +39,9 @@
     <Modal
       v-model="isOpen"
       title="Create a new story map"
-      ok-text="add comment"
+      cancel-text="Cancel"
+      ok-text="Save"
+      @on-ok="save"
       @on-visible-change="visiableChange">
       <h3>Name and description</h3>
       <div class="map-name">
@@ -51,12 +53,6 @@
       <div class="map-desc">
         <label>Description</label>
         <textarea class="input" v-model="desc"></textarea>
-      </div>
-
-      <div slot="footer">
-        <Button class="save-btn" type="text" @click="save">Save</Button>
-        <Button class="save-go-btn" type="text">Save and go to story map</Button>
-        <Button class="cancel-btn" type="text">Cancel</Button>
       </div>
     </Modal>
 
@@ -191,7 +187,7 @@ export default {
     width: 100%;
   }
 
-  .save-btn, .save-go-btn, .cancel-btn  {
+  .save-btn, .cancel-btn  {
     color: #fff;
   }
 
@@ -202,7 +198,7 @@ export default {
     }
   }
 
-  .save-go-btn, .cancel-btn {
+  .cancel-btn {
     background-color: #515151;
     &:hover {
       background-color: #181a1d;
