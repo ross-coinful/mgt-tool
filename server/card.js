@@ -97,3 +97,6 @@ module.exports = function (passport, isAuthenticated) {
   });
   return router;
 };
+
+// C:\Side Project\mgt-tool\server\uploads\79e0bcc5d1e6afb483e7e8abe3a7b448'
+// C:\Side Project\mgt-tool\uploads\79e0bcc5d1e6afb483e7e8abe3a7b448

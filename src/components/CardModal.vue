@@ -15,6 +15,21 @@
           <textarea class="input" v-else v-model="detail" @blur="blurDetail" v-focus="isFocusDetail"></textarea>
         </div>
 
+        <form
+          class="upload-form"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <Icon class="attach-btn" type="android-attach"></Icon>
+          <input class="file-input" ref="file" type="file" name="image" @change="uploadImage">
+        </form>
+
+<!--         <div class="card-attach">
+          <span class="attach-btn" @click="attachFile">
+            <Icon type="android-attach"></Icon>
+          </span>
+        </div>
+ -->
         <Comment
           v-for="comment in comments"
           :id="comment.id"
@@ -296,6 +311,13 @@ export default {
         members: _activeMember
       }]);
     },
+    uploadImage () {
+      const data = new FormData();
+      data.append('image', this.$refs.file.files[0]);
+
+      this.$store.dispatch('uploadImage', data);
+      this.updateType = 'Detail';
+    },
     addComment () {
       this.$store.dispatch('addComment', {
         body: this.comment
@@ -405,6 +427,29 @@ export default {
     margin-top: 10px;
     margin-left: auto;
   }
+}
+
+.upload-form {
+  position: relative;
+  height: 30px;
+}
+
+.attach-btn,
+.file-input {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  width: 30px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.attach-btn {
+  font-size: 20px;
+}
+
+.file-input {
+  opacity: 0;
 }
 
 .setting {

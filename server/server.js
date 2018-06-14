@@ -183,6 +183,7 @@ const card = require('./card');
 const release = require('./release');
 const issue = require('./issue');
 const comment = require('./comment');
+const image = require('./image');
 
 app.param('mapId', function (req, res, next, mapId) {
   StoryMapModel.findOne({id: parseInt(mapId, 10)}).exec((err, map) => {
@@ -208,6 +209,7 @@ app.use('/map/:mapId/card', card(passport, isAuthenticated));
 app.use('/map/:mapId/release', release(passport, isAuthenticated));
 app.use('/map/:mapId/card/:cardId/issue', issue(passport, isAuthenticated));
 app.use('/map/:mapId/card/:cardId/comment', comment(passport, isAuthenticated));
+app.use('/map/:mapId/card/:cardId/image', image(passport, isAuthenticated));
 
 app.listen(port, () => {
   console.log('==>Server is running on port %s', port);

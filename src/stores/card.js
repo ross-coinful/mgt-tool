@@ -1,6 +1,7 @@
 import ApiClient from '../helpers/ApiClient';
 import { defaultWidth } from '../../data';
 import { sortList } from '../utils';
+import axios from 'axios';
 
 export default {
   state: {
@@ -174,6 +175,25 @@ export default {
         commit('updateCommentSuc', card);
       }, (error) => {
         commit('updateCommentErr', error);
+      });
+    },
+    uploadImage ({ commit, rootState, state }, data) {
+      commit('getCard');
+
+      const mapId = rootState.map.map.id;
+      const cardId = rootState.card.focusId;
+
+      axios({
+        method: 'post',
+        url: `http://localhost:8030/map/${mapId}/card/${cardId}/image`,
+        data,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((response) => {
+        commit('getCardSuc', response.data);
+      }, (error) => {
+        commit('getCardErr', error);
       });
     }
   },
